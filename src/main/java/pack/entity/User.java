@@ -1,9 +1,7 @@
 package pack.entity;
 
-import com.botscrew.botframework.domain.user.Bot;
-import com.botscrew.botframework.domain.user.PlatformUser;
-import com.botscrew.messengercdk.model.DefaultMessengerBot;
 import com.botscrew.messengercdk.model.MessengerUser;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,7 +16,6 @@ public class User implements MessengerUser {
     private String state;
 
     public User() {
-        state = "INITIAL";
     }
 
     public User(Long chatId, String state) {
@@ -42,11 +39,6 @@ public class User implements MessengerUser {
     @Override
     public String getState() {
         return state;
-    }
-
-    @Override
-    public Bot getBot() {
-        return new DefaultMessengerBot((Long)null, (String)null);
     }
 
     public void setChatId(Long chatId) {

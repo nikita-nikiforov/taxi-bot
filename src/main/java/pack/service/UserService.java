@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import pack.dao.UserRepository;
 import pack.entity.User;
 
+import java.util.Optional;
+
 @Service
 public class UserService implements UserProvider {
 
@@ -15,30 +17,20 @@ public class UserService implements UserProvider {
 
     @Override
     public MessengerUser getByChatIdAndPageId(Long chatId, Long pageId) {
-        User user = userRepository.findByChatId(chatId);
-        if (user != null) {
-            return user;
-        } else {
-            return new User(chatId, "INITIAL");
-        }
+        Optional<User> result = userRepository.findByChatId(chatId);
+        // If present, return user. Otherwise, create new one
+        return result.orElseGet(() -> new User(chatId, "INITIAL"));
     }
 
-    public User getByChatId(long chatId) {
+    public Optional<User> getByChatId(long chatId) {
         return userRepository.findByChatId(chatId);
-    }
-
-    public void save(User user) {
-        userRepository.save(user);
     }
 
     public void save(long chatId, String state) {
 
-        User user = getByChatId(chatId);
-        if (user != null) {
-            user.setState(state);
-        } else {
-            user = new User(chatId, state);
-        }
-        userRepository.save(user);
+        Optional<User> result = getByChatId(chatId);
+        result.ifPresent(user -> user.setState(state));             // If present, set new state
+
+        userRepository.save(result.orElse(new User(chatId, state))); // If absent, create new User
     }
 }
