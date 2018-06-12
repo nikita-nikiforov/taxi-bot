@@ -1,8 +1,10 @@
 package pack.handler;
 
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
+import com.botscrew.botframework.annotation.Location;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.MessengerUser;
+import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.MessageText;
@@ -20,7 +22,7 @@ public class TextHandler {
     private Sender sender;
 
     @Text(states = {"START_INPUT"})
-    public void handleStartInput(MessengerUser user, @Text String text) {
+    public void handleStartInputText(MessengerUser user, @Text String text) {
         String answer;
         if (text.equals("Lviv")) {
             userService.save(user.getChatId(), "END_INPUT");
@@ -29,6 +31,14 @@ public class TextHandler {
             answer = MessageText.START_INPUT_FALSE.toString();
         }
         sender.send(user, answer);
+    }
+
+    @Location(states = {"START_INPUT"})
+    public void handleStartInputLocation(MessengerUser user, @Location Coordinates coordinates) {
+        StringBuilder answer = new StringBuilder("You want drive to ")
+                .append(coordinates.getLongitude()).append(" ").append(coordinates.getLatitude());
+        sender.send(user, answer.toString());
+
     }
 
     @Text(states = {"END_INPUT"})
@@ -48,11 +58,11 @@ public class TextHandler {
         sender.send(user, MessageText.WAIT_FOR_CAR.toString());
     }
 
+    // isn't ever used
     @Text
     public void handleDefault(MessengerUser user, @Text String text) {
 //        outOfStateHandler.handleOutOfState();
         sender.send(user, "I don't understand you");
-
     }
 
     @Autowired

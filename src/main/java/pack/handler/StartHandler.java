@@ -22,19 +22,15 @@ public class StartHandler {
 
     @Postback(value = "GET_STARTED", states = "INITIAL")
     public void handleGetStarted(MessengerUser user) {
-        sender.send(user, MessageText.INITIAL.toString());
+        Request request = getInitialRequest(user);
+        sender.send(request);
         userService.save(user.getChatId(), user.getState());
     }
 
     @Text(states = {"INITIAL"})
     public void handleInitialState(MessengerUser user, @Text String text) {
         userService.save(user.getChatId(), user.getState());
-        Request request = QuickReplies.builder()
-                .user(user)
-                .text(MessageText.INITIAL.toString())
-                .postback("Order a taxi", "MAKE_ORDER")
-                .postback("Show last trips", "SHOW_TRIPS")
-                .build();
+        Request request = getInitialRequest(user);
 
         sender.send(request);
     }
@@ -42,12 +38,27 @@ public class StartHandler {
     @Postback(value = "MAKE_ORDER", states = "INITIAL")
     public void handleMakeOrder(User user) {
         userService.save(user.getChatId(), "START_INPUT");
-        sender.send(user, MessageText.START_INPUT.toString());
+        Request request = QuickReplies.builder()
+                .user(user)
+                .text(MessageText.START_INPUT.toString())
+                .location()
+                .build();
+        sender.send(request);
     }
+
 
     @Postback(value = "SHOW_TRIPS", states = "INITIAL")
     public void handleDefaultButton(MessengerUser user) {
         sender.send(user, "AZAZA");
+    }
+
+    private Request getInitialRequest(MessengerUser user) {
+        return QuickReplies.builder()
+                .user(user)
+                .text(MessageText.INITIAL.toString())
+                .postback("Order a taxi", "MAKE_ORDER")
+                .postback("Show last trips", "SHOW_TRIPS")
+                .build();
     }
 
     @Autowired

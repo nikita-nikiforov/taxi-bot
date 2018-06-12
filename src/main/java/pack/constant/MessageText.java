@@ -3,7 +3,7 @@ package pack.constant;
 public enum MessageText {
     INITIAL("Hi! Welcome to Taxi Bot. What do you want to do?"),
     START_INPUT("Currently, we can drive you only from Lviv to Odesa. " +
-            "Please, enter the start point."),
+            "Please, write the start point or attach the location."),
     START_INPUT_TRUE("Awesome! Now enter the end point."),
     START_INPUT_FALSE("Your location is not supported. Another one?"),
     END_INPUT_TRUE("Nice! Now wait for a car."),
