@@ -17,7 +17,7 @@ public class UserService implements UserProvider {
 
     @Override
     public MessengerUser getByChatIdAndPageId(Long chatId, Long pageId) {
-        Optional<User> result = userRepository.findByChatId(chatId);
+        Optional<User> result = getByChatId(chatId);
         // If present, return user. Otherwise, create new one
         return result.orElseGet(() -> new User(chatId, "INITIAL"));
     }
@@ -27,10 +27,8 @@ public class UserService implements UserProvider {
     }
 
     public void save(long chatId, String state) {
-
         Optional<User> result = getByChatId(chatId);
         result.ifPresent(user -> user.setState(state));             // If present, set new state
-
         userRepository.save(result.orElse(new User(chatId, state))); // If absent, create new User
     }
 }

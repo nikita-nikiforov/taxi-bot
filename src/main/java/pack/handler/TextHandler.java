@@ -5,36 +5,28 @@ import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.MessengerUser;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
-import pack.constants.Messages;
+import pack.constant.MessageText;
 import pack.service.UserService;
 
 @ChatEventsProcessor
 public class TextHandler {
 
     @Autowired
-    UserService userService;
-
-    private final Sender sender;
+    private UserService userService;
 
     @Autowired
-    public TextHandler(Sender sender) {
-        this.sender = sender;
-    }
+    private OutOfStateHandler outOfStateHandler;
 
-    @Text(states = {"INITIAL"})
-    public void handleInitialState(MessengerUser user, @Text String text) {
-        userService.save(user.getChatId(), "START_INPUT");
-        sender.send(user, Messages.INITIAL);
-    }
+    private Sender sender;
 
     @Text(states = {"START_INPUT"})
     public void handleStartInput(MessengerUser user, @Text String text) {
         String answer;
         if (text.equals("Lviv")) {
             userService.save(user.getChatId(), "END_INPUT");
-            answer = Messages.START_INPUT_TRUE;
+            answer = MessageText.START_INPUT_TRUE.toString();
         } else {
-            answer = Messages.START_INPUT_FALSE;
+            answer = MessageText.START_INPUT_FALSE.toString();
         }
         sender.send(user, answer);
     }
@@ -44,15 +36,27 @@ public class TextHandler {
         String answer;
         if (text.equals("Odesa")) {
             userService.save(user.getChatId(), "WAIT_FOR_CAR");
-            answer = Messages.END_INPUT_TRUE;
+            answer = MessageText.END_INPUT_TRUE.toString();
         } else {
-            answer = Messages.END_INPUT_FALSE;
+            answer = MessageText.END_INPUT_FALSE.toString();
         }
         sender.send(user, answer);
     }
 
     @Text(states = {"WAIT_FOR_CAR"})
     public void handleWaitForCar(MessengerUser user, @Text String text) {
-        sender.send(user, Messages.WAIT_FOR_CAR);
+        sender.send(user, MessageText.WAIT_FOR_CAR.toString());
+    }
+
+    @Text
+    public void handleDefault(MessengerUser user, @Text String text) {
+//        outOfStateHandler.handleOutOfState();
+        sender.send(user, "I don't understand you");
+
+    }
+
+    @Autowired
+    public void setSender(Sender sender) {
+        this.sender = sender;
     }
 }
