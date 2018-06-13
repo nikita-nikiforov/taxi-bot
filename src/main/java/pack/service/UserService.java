@@ -31,4 +31,8 @@ public class UserService implements UserProvider {
         result.ifPresent(user -> user.setState(state));             // If present, set new state
         userRepository.save(result.orElse(new User(chatId, state))); // If absent, create new User
     }
+
+    public void save(MessengerUser user, String state) {
+        save(user.getChatId(), state);
+    }
 }

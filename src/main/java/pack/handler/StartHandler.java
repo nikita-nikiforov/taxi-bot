@@ -1,6 +1,7 @@
 package pack.handler;
 
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
+import com.botscrew.botframework.annotation.Echo;
 import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.MessengerUser;
@@ -9,7 +10,6 @@ import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.MessageText;
-import pack.entity.User;
 import pack.service.UserService;
 
 @ChatEventsProcessor
@@ -23,8 +23,8 @@ public class StartHandler {
     @Postback(value = "GET_STARTED", states = "INITIAL")
     public void handleGetStarted(MessengerUser user) {
         Request request = getInitialRequest(user);
-        sender.send(request);
         userService.save(user.getChatId(), user.getState());
+        sender.send(request);
     }
 
     @Text(states = {"INITIAL"})
@@ -35,16 +35,6 @@ public class StartHandler {
         sender.send(request);
     }
 
-    @Postback(value = "MAKE_ORDER", states = "INITIAL")
-    public void handleMakeOrder(User user) {
-        userService.save(user.getChatId(), "START_INPUT");
-        Request request = QuickReplies.builder()
-                .user(user)
-                .text(MessageText.START_INPUT.toString())
-                .location()
-                .build();
-        sender.send(request);
-    }
 
 
     @Postback(value = "SHOW_TRIPS", states = "INITIAL")
@@ -52,7 +42,18 @@ public class StartHandler {
         sender.send(user, "AZAZA");
     }
 
+//    @Read(states = "INITIAL")
+//    public void handleRead(MessengerUser user) {
+//        System.out.println("Read");
+//    }
+
+    @Echo(states = "INITIAL")
+    public void handleEcho(MessengerUser user) {
+        System.out.println("Echo");
+    }
+
     private Request getInitialRequest(MessengerUser user) {
+
         return QuickReplies.builder()
                 .user(user)
                 .text(MessageText.INITIAL.toString())
@@ -65,4 +66,7 @@ public class StartHandler {
     public void setUserService(Sender sender) {
         this.sender = sender;
     }
+
+    //------------------------------------------------------------
+
 }
