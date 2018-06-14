@@ -10,7 +10,10 @@ public enum MessageText {
             "\nBut maybe you want to go somewhere else?"),
     WAIT_FOR_CAR("You're waiting for a car."),
     EXIT("Okay! If you want to order a taxi again, " +
-            "write to me. Have a nice day :)")
+            "write to me. Have a nice day :)"),
+    FAV_PLACE_INPUT_MAP("Select the place you want to save."),
+    FAV_PLACE_INPUT_NAME("Enter the name of this place."),
+    FAV_PLACE_ADDED("The place was saved!")
     ;
 
     MessageText(String text) {

@@ -44,6 +44,7 @@ public class OrderHandler {
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.START_INPUT.toString())
+                .postback("My places", "SELECT_FROM_PLACES")
                 .location()
                 .build();
         sender.send(request);

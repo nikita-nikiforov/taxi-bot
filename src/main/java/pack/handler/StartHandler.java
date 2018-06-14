@@ -1,7 +1,6 @@
 package pack.handler;
 
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
-import com.botscrew.botframework.annotation.Echo;
 import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.MessengerUser;
@@ -18,6 +17,7 @@ public class StartHandler {
     @Autowired
     private UserService userService;
 
+    @Autowired
     private Sender sender;
 
     @Postback(value = "GET_STARTED", states = "INITIAL")
@@ -37,19 +37,9 @@ public class StartHandler {
 
 
 
-    @Postback(value = "SHOW_TRIPS", states = "INITIAL")
+    @Postback(value = "SHOW_TRIPS")
     public void handleDefaultButton(MessengerUser user) {
         sender.send(user, "AZAZA");
-    }
-
-//    @Read(states = "INITIAL")
-//    public void handleRead(MessengerUser user) {
-//        System.out.println("Read");
-//    }
-
-    @Echo(states = "INITIAL")
-    public void handleEcho(MessengerUser user) {
-        System.out.println("Echo");
     }
 
     private Request getInitialRequest(MessengerUser user) {
@@ -59,14 +49,7 @@ public class StartHandler {
                 .text(MessageText.INITIAL.toString())
                 .postback("Order a taxi", "MAKE_ORDER")
                 .postback("Show last trips", "SHOW_TRIPS")
+                .postback("Authorize in uber", "AUTH_UBER")
                 .build();
     }
-
-    @Autowired
-    public void setUserService(Sender sender) {
-        this.sender = sender;
-    }
-
-    //------------------------------------------------------------
-
 }

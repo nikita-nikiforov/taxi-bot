@@ -36,7 +36,7 @@ public class Initialization {
                         NestedMenuItem.builder()
                             .title("Others")
                             .addMenuItem(new PostbackMenuItem("Add favorite location",
-                                    "ADD_LOCATION"))
+                                    "ADD_PLACE"))
                             .addMenuItem(NestedMenuItem.builder()
                                     .title("Current trip features")
                                     .addMenuItem(PostbackMenuItem.builder()
