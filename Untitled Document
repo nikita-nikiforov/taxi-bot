@@ -1,0 +1,15 @@
+//https://login.uber.com/oauth/v2/token?
+// client_secret=CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT
+// &client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_
+// &grant_type=authorization_code
+// &redirect_uri=https://cd0d6cb4.ngrok.io/uber-link
+// &code=OFpuipxXpAAh71dDgw0572B9QHI2Dt
+
+
+https://login.uber.com/oauth/v2/authorize?client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_&response_type=code&redirect_uri=https://cd0d6cb4.ngrok.io/uber-link
+
+
+https://login.uber.com/oauth/v2/authorize?client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_&response_type=code&redirect_uri=https://cd0d6cb4.ngrok.io/uber-link
+
+    // https://login.uber.com/oauth/v2/token?client_secret=CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT&client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_&grant_type=authorization_code&redirect_uri=https://cd0d6cb4.ngrok.io/get-access-token&code=VHNugPCc3JpQ9cQtMTHPyBDwjxsyYC
+//    

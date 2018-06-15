@@ -1,5 +1,8 @@
 package pack.json;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties
 public class UberAccessTokenResponse {
     private String last_authenticated;
     private String access_token;
@@ -9,6 +12,15 @@ public class UberAccessTokenResponse {
     private String refresh_token;
 
     public UberAccessTokenResponse() {
+    }
+
+    public UberAccessTokenResponse(String last_authenticated, String access_token, String expires_in, String token_type, String scope, String refresh_token) {
+        this.last_authenticated = last_authenticated;
+        this.access_token = access_token;
+        this.expires_in = expires_in;
+        this.token_type = token_type;
+        this.scope = scope;
+        this.refresh_token = refresh_token;
     }
 
     public String getLast_authenticated() {

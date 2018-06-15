@@ -26,6 +26,7 @@ public class UberController {
     @ResponseBody
     @GetMapping("uber-link")
     public String getUberCode(@RequestParam("code") String code) {
+        uberService.handleCode(code);
         return code;
     }
 
@@ -37,9 +38,11 @@ public class UberController {
 
     @ResponseBody
     @PostMapping("getJSON")
-    public Ride returnRide(@RequestBody Ride ride) {
-        System.out.println(ride);
-        return new Ride(3.3, 3.2, 3.1, 3.0);
+    public UberAccessTokenResponse returnRide(@RequestBody UberAccessTokenRequest json) {
+        System.out.println("Get JSON: " + json);
+        UberAccessTokenResponse response = new UberAccessTokenResponse("1", "2", "3", "4", "5", "6");
+
+        return response;
     }
 
     @ResponseBody

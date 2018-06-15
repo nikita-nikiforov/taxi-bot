@@ -1,5 +1,8 @@
 package pack.json;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties
 public class UberAccessTokenRequest {
     private String client_secret;
     private String client_id;

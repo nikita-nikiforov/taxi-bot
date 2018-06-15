@@ -67,4 +67,9 @@ public class Initialization {
 //                        WebHook.Field.POSTBACKS
 //                ));
 //    }
+
+
+    public String getBASE_URL() {
+        return BASE_URL;
+    }
 }
