@@ -1,7 +1,8 @@
 package pack.constant;
 
 public enum MessageText {
-    INITIAL("Hi! Welcome to Taxi Bot. What do you want to do?"),
+    INITIAL("Hi! Welcome to Taxi Bot. Firstly, authorize in Uber."),
+    AUTHORIZED("Great! What to you want to do now?"),
     START_INPUT("Please, attach the start location or just write the address."),
     START_INPUT_TRUE("Awesome! Now enter the end point."),
     START_INPUT_FALSE("Your location is not supported. Another one?"),
@@ -13,8 +14,7 @@ public enum MessageText {
             "write to me. Have a nice day :)"),
     FAV_PLACE_INPUT_MAP("Select the place you want to save."),
     FAV_PLACE_INPUT_NAME("Enter the name of this place."),
-    FAV_PLACE_ADDED("The place was saved!")
-    ;
+    FAV_PLACE_ADDED("The place was saved!");
 
     MessageText(String text) {
         this.text = text;

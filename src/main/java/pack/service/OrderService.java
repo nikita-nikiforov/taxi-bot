@@ -43,4 +43,8 @@ public class OrderService {
         order.setEndLong(latLng.lng);
         orderRepository.save(order);
     }
+
+    public Orderr getOrderByChatId(long chatId) {
+        return orderRepository.findByUserChatId(chatId);
+    }
 }

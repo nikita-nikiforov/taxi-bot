@@ -26,7 +26,8 @@ public class UberController {
     @ResponseBody
     @GetMapping("uber-link")
     public String getUberCode(@RequestParam("code") String code) {
-        uberService.handleCode(code);
+
+        uberService.authorize(code);
         return code;
     }
 
@@ -92,21 +93,15 @@ public class UberController {
         return null;
     }
 
-    @GetMapping("test2")
-    public String testtest2() {
-        uberService.authUser();
-        return "hello";
-    }
+//    @GetMapping("test2")
+//    public String testtest2() {
+//        uberService.authUser();
+//        return "hello";
+//    }
 
     @ResponseBody
     @GetMapping("test3")
     public UberAccessTokenResponse test3() {
-        //https://login.uber.com/oauth/v2/token?
-// client_secret=CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT
-// &client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_
-// &grant_type=authorization_code
-// &redirect_uri=https://cd0d6cb4.ngrok.io/uber-link
-// &code=OFpuipxXpAAh71dDgw0572B9QHI2Dt
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
 
         CloseableHttpClient httpClient = HttpClientBuilder.create()
@@ -137,19 +132,5 @@ public class UberController {
         String result = restTemplate.getForObject(url, String.class);
         return result;
     }
-
-
-
-
-
-    // https://login.uber.com/oauth/v2/authorize?client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_&response_type=code&redirect_uri=https://cd0d6cb4.ngrok.io/uber-link
-    // https://login.uber.com/oauth/v2/token?client_secret=CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT&client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_&grant_type=authorization_code&redirect_uri=https://cd0d6cb4.ngrok.io/get-access-token&code=VHNugPCc3JpQ9cQtMTHPyBDwjxsyYC
-//    curl -F 'client_secret=CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT' \
-//            -F 'client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_' \
-//            -F 'grant_type=authorization_code' \
-//            -F 'redirect_uri=https://af350a13.ngrok.io/get-access-token' \
-//            -F 'code=crd.EA.CAESENqmbR3G-EnduUuerQBOfNYiATE.iINno0qhH0Zsas5TVY_NqYtsQG80Yt-lubnmcOyuDJQ' \
-//    https://login.uber.com/oauth/v2/token
-//    curl -F 'client_secret=CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT' \ -F 'client_id=NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_' \ -F 'grant_type=authorization_code' \ -F 'redirect_uri=https://af350a13.ngrok.io/get-access-token' \ -F 'code=crd.EA.CAESEBuQ7feDI0EzpAbJnZV9RSMiATE.I_5dtkWVc_0_8l_7mCuZixWupsbCrTRkE1iqAwifpZY' \ https://login.uber.com/oauth/v2/token
 
 }

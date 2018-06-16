@@ -60,7 +60,7 @@ public class FavoritePlaceHandler {
     @Text(states = "FAV_PLACE_INPUT_NAME")
     public void handleFavPlaceInputName(User user, @Text String text) {
         favPlaceService.savePlaceName(user, text);
-        userService.save(user, "INITIAL");
+        userService.save(user, "LOGGED");
         Request request = TextMessage.builder()
                 .user(user)
                 .text(MessageText.FAV_PLACE_ADDED.toString())

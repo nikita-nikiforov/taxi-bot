@@ -1,16 +1,21 @@
 package pack.service;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import pack.dao.UberCredentialRepository;
+import org.springframework.web.util.UriComponentsBuilder;
+import pack.entity.Orderr;
+import pack.entity.UberCredential;
+import pack.entity.User;
 import pack.init.Initialization;
 import pack.json.UberAccessTokenResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class UberService {
@@ -22,12 +27,16 @@ public class UberService {
     UserService userService;
 
     @Autowired
-    UberCredentialRepository uberCredentialRepository;
+    UberCredentialService uberCredentialService;
 
-    public void authUser() {
+    @Autowired
+    OrderService orderService;
 
-        RestTemplate restTemplate = new RestTemplate();
-        
+    public void authUser(User user) {
+        UberCredential myCredential = new UberCredential();
+        myCredential.setUser(user);
+        myCredential.setAccess_token("KA.eyJ2ZXJzaW9uIjoyLCJpZCI6Iktuczd2TFpRU0lxYkQ3emVIOTljMnc9PSIsImV4cGlyZXNfYXQiOjE1MzE3NTk4ODMsInBpcGVsaW5lX2tleV9pZCI6Ik1RPT0iLCJwaXBlbGluZV9pZCI6MX0.9Xce65OhRguqhZSK838ta1DOoHdbZ7n4V_1ts6sFZjk");
+        uberCredentialService.save(myCredential);
     }
 
     public void authorize(String code) {
@@ -72,6 +81,61 @@ public class UberService {
         request.add("code", code);
         return request;
     }
+
+    public JSONObject makeMagic(User user) {
+        return makeOrder(user);
+//        infoAboutMe(user);
+    }
+
+    public JSONObject makeOrder(User user) {
+        Orderr order = orderService.getOrderByChatId(user.getChatId());
+
+        Map<String, String> params = new HashMap<>();
+        params.put("latitude", String.valueOf(order.getStartLat()) + "0");
+        params.put("longitude", String.valueOf(order.getStartLong()) + "0");
+
+        return retrieveJson(user, "https://api.uber.com/v1.2/products", HttpMethod.GET, params);
+    }
+
+    public JSONObject infoAboutMe(User user) {
+        return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
+    }
+
+    public JSONObject showHistory(User user) {
+        return retrieveJson(user, "https://api.uber.com/v1.2/history", HttpMethod.GET);
+    }
+
+    public JSONObject retrieveJson(User user, String url, HttpMethod method, Map<String, String> params) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+        params.forEach(builder::queryParam);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Accept-Language", "en_US ");
+        headers.set("Content-Type", "application/json ");
+
+        HttpEntity entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> tokenResponse = null;
+        try {
+            tokenResponse = restTemplate.exchange(builder.toUriString(), method, entity,
+                    String.class);
+            String body = tokenResponse.getBody();
+            return new JSONObject(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; //TODO
+        }
+    }
+
+    public JSONObject retrieveJson(User user, String url, HttpMethod method) {
+        return retrieveJson(user, url, method, null);
+    }
+
 
 //    public ServerTokenSession getServerTokenSession() {
 //        SessionConfiguration config = new SessionConfiguration.Builder()

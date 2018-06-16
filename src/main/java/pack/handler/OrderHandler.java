@@ -38,7 +38,7 @@ public class OrderHandler {
     @Autowired
     private OrderService orderService;
 
-    @Postback(value = "MAKE_ORDER", states = "INITIAL")
+    @Postback(value = "MAKE_ORDER", states = "LOGGED")
     public void handleMakeOrder(User user) {
         userService.save(user.getChatId(), "START_INPUT");
         Request request = QuickReplies.builder()
