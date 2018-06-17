@@ -17,7 +17,7 @@ public class UberController {
     @GetMapping("uber-link")
     public String getUberCode(@RequestParam("code") String code) {
 
-        uberService.authorize(code);
-        return code;
+        String access_token = uberService.authorize(code);
+        return "Your code: " + code + "\nYour access token: " + access_token;
     }
 }

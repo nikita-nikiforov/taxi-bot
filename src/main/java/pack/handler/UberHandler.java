@@ -3,16 +3,22 @@ package pack.handler;
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
 import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
+import com.botscrew.messengercdk.model.outgoing.builder.SenderAction;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
+import com.botscrew.messengercdk.model.outgoing.element.WebAction;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import pack.entity.User;
 import pack.service.UberService;
 import pack.service.UserService;
 
 @ChatEventsProcessor
 public class UberHandler {
+
+    @Value("${auth-url}")
+    private String AUTH_URL;
 
     @Autowired
     Sender sender;
@@ -34,12 +40,18 @@ public class UberHandler {
                 .imageUrl(IMAGE_URL)
                 .build();
         Request request = GenericTemplate.builder()
-                .addElement(element)
-                .addElement(element)
-                .addElement(element)
+                .addElement(TemplateElement.builder()
+                        .title("Azazaza")
+                        .subtitle("OLOLOLOLO")
+                    .defaultAction(WebAction.builder()
+                            .url(AUTH_URL)
+                            .makeTallWebView()
+                            .build())
+                .build())
                 .user(user)
                 .build();
 
+        sender.send(SenderAction.typingOn(user));
         sender.send(request);
     }
 }

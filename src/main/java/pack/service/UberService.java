@@ -11,7 +11,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import pack.entity.Orderr;
 import pack.entity.UberCredential;
 import pack.entity.User;
 import pack.init.Initialization;
@@ -51,9 +50,10 @@ public class UberService {
         uberCredentialService.save(myCredential);
     }
 
-    public void authorize(String code) {
+    public String authorize(String code) {
         UberAccessTokenResponse accessTokenResponse = getAccessTokenResponse(code);
-        saveUserAccessToken(accessTokenResponse);
+        saveUserAccessToken(accessTokenResponse);               // Save access token TODO
+        return accessTokenResponse.getAccess_token();
     }
 
     public UberAccessTokenResponse getAccessTokenResponse(String code) {
@@ -95,18 +95,14 @@ public class UberService {
     }
 
     public JSONObject makeMagic(User user) {
-        return makeOrder(user);
+//        return makeOrder(user);
 //        infoAboutMe(user);
+        return null;
     }
 
+    // TODO
     public JSONObject makeOrder(User user) {
-        Orderr order = orderService.getOrderByChatId(user.getChatId());
-
-        Map<String, String> params = new HashMap<>();
-        params.put("latitude", String.valueOf(order.getStartLat()) + "0");
-        params.put("longitude", String.valueOf(order.getStartLong()) + "0");
-
-        return retrieveJson(user, "https://api.uber.com/v1.2/products", HttpMethod.GET, params);
+        return null;
     }
 
     public JSONObject infoAboutMe(User user) {
