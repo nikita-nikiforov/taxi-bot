@@ -1,7 +1,10 @@
 package pack.service;
 
+import com.google.gson.Gson;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -12,13 +15,19 @@ import pack.entity.Orderr;
 import pack.entity.UberCredential;
 import pack.entity.User;
 import pack.init.Initialization;
+import pack.json.HistoryItem;
 import pack.json.UberAccessTokenResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class UberService {
+
+    @Autowired
+    private Gson gson;
 
     @Autowired
     private Initialization initialization;
@@ -32,10 +41,13 @@ public class UberService {
     @Autowired
     OrderService orderService;
 
+    @Value("${my-uber-access-key}")
+    private String MY_ACCESS_KEY;
+
     public void authUser(User user) {
         UberCredential myCredential = new UberCredential();
         myCredential.setUser(user);
-        myCredential.setAccess_token("KA.eyJ2ZXJzaW9uIjoyLCJpZCI6Iktuczd2TFpRU0lxYkQ3emVIOTljMnc9PSIsImV4cGlyZXNfYXQiOjE1MzE3NTk4ODMsInBpcGVsaW5lX2tleV9pZCI6Ik1RPT0iLCJwaXBlbGluZV9pZCI6MX0.9Xce65OhRguqhZSK838ta1DOoHdbZ7n4V_1ts6sFZjk");
+        myCredential.setAccess_token(MY_ACCESS_KEY);
         uberCredentialService.save(myCredential);
     }
 
@@ -101,8 +113,18 @@ public class UberService {
         return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
     }
 
-    public JSONObject showHistory(User user) {
-        return retrieveJson(user, "https://api.uber.com/v1.2/history", HttpMethod.GET);
+    public List<HistoryItem> getHistoryList(User user) {
+        JSONObject json = retrieveJson(user, "https://api.uber.com/v1.2/history", HttpMethod.GET);
+        JSONArray array = (JSONArray) json.get("history");
+        List<HistoryItem> historyList = new ArrayList<>();
+
+        array.forEach(o -> {
+            JSONObject temp = (JSONObject) o;
+            HistoryItem historyItem = gson.fromJson(temp.toString(), HistoryItem.class);
+            historyList.add(historyItem);
+        });
+
+        return historyList;
     }
 
     public JSONObject retrieveJson(User user, String url, HttpMethod method, Map<String, String> params) {
@@ -133,7 +155,7 @@ public class UberService {
     }
 
     public JSONObject retrieveJson(User user, String url, HttpMethod method) {
-        return retrieveJson(user, url, method, null);
+        return retrieveJson(user, url, method, new HashMap<>());
     }
 
 
