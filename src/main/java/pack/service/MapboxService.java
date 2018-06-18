@@ -17,7 +17,7 @@ public class MapboxService {
         StringBuilder result = new StringBuilder();
         result.append("https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/")
                 .append(lng).append(",").append(lat)
-                .append(",10.2,0,0/300x200?access_token=")
+                .append(",9,0,0/300x200?access_token=")
                 .append(MAPBOX_ACCESS_TOKEN);
 
         return result.toString();

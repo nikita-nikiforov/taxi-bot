@@ -4,18 +4,16 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import pack.entity.UberCredential;
 import pack.entity.User;
 import pack.init.Initialization;
 import pack.json.HistoryItem;
-import pack.json.UberAccessTokenResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,66 +38,6 @@ public class UberService {
     @Autowired
     OrderService orderService;
 
-    @Value("${my-uber-access-key}")
-    private String MY_ACCESS_KEY;
-
-    public void authUser(User user) {
-        UberCredential myCredential = new UberCredential();
-        myCredential.setUser(user);
-        myCredential.setAccess_token(MY_ACCESS_KEY);
-        uberCredentialService.save(myCredential);
-    }
-
-    public String authorize(String code) {
-        UberAccessTokenResponse accessTokenResponse = getAccessTokenResponse(code);
-        saveUserAccessToken(accessTokenResponse);               // Save access token TODO
-        return accessTokenResponse.getAccess_token();
-    }
-
-    public UberAccessTokenResponse getAccessTokenResponse(String code) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        String url = "https://login.uber.com/oauth/v2/token";
-        MultiValueMap<String, String> params = getParamsToObtainAccessToken(code);
-
-        // set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-
-
-        UberAccessTokenResponse tokenResponse = null;
-        try {
-            tokenResponse = restTemplate.postForObject(url,
-                    entity, UberAccessTokenResponse.class, params);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return tokenResponse;
-
-    }
-
-    // TODO
-    public void saveUserAccessToken(UberAccessTokenResponse response) {
-//        UberCredential
-    }
-
-    private MultiValueMap getParamsToObtainAccessToken(String code) {
-        MultiValueMap<String, String> request = new LinkedMultiValueMap();
-        request.add("client_secret", "CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT");
-        request.add("client_id", "NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_");
-        request.add("grant_type", "authorization_code");
-        request.add("redirect_uri", initialization.getBASE_URL() + "uber-link");
-        request.add("code", code);
-        return request;
-    }
-
-    public JSONObject makeMagic(User user) {
-//        return makeOrder(user);
-//        infoAboutMe(user);
-        return null;
-    }
-
     // TODO
     public JSONObject makeOrder(User user) {
         return null;
@@ -111,12 +49,12 @@ public class UberService {
 
     public List<HistoryItem> getHistoryList(User user) {
         JSONObject json = retrieveJson(user, "https://api.uber.com/v1.2/history", HttpMethod.GET);
-        JSONArray array = (JSONArray) json.get("history");
+        JSONArray array = (JSONArray) json.get("history");      // "history" object from JSON response
         List<HistoryItem> historyList = new ArrayList<>();
 
-        array.forEach(o -> {
-            JSONObject temp = (JSONObject) o;
-            HistoryItem historyItem = gson.fromJson(temp.toString(), HistoryItem.class);
+        array.forEach(e -> {
+            JSONObject historyItemJson = (JSONObject) e;
+            HistoryItem historyItem = gson.fromJson(historyItemJson.toString(), HistoryItem.class);
             historyList.add(historyItem);
         });
 
@@ -153,52 +91,4 @@ public class UberService {
     public JSONObject retrieveJson(User user, String url, HttpMethod method) {
         return retrieveJson(user, url, method, new HashMap<>());
     }
-
-
-//    public ServerTokenSession getServerTokenSession() {
-//        SessionConfiguration config = new SessionConfiguration.Builder()
-//                .setClientId("NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_")
-//                .setServerToken("zwRUhoz8pVi9vQ31Pb9n5Lwb7oXQ6wT5ZIxkBKkg")
-//                .build();
-//        return new ServerTokenSession(config);
-//    }
-
-//    public void withUberSDK() {
-//        List<Scope> scopes = new ArrayList<>();
-//        scopes.add(Scope.PROFILE);
-//        SessionConfiguration config = new SessionConfiguration.Builder()
-//                .setClientId("NJo0_9PAUJIAEy1nczsL6_TN0GCv1tm_")
-//                .setClientSecret("CXWW7BdFQsJxgXUumM8A-Z-oDOnBIkF3bBZ3AVZT")
-//                .setScopes(scopes)
-//                .setRedirectUri("https://cd0d6cb4.ngrok.io/uber-link")
-//                .build();
-//
-//        OAuth2Credentials credentials = new OAuth2Credentials.Builder()
-//                .setSessionConfiguration(config)
-//                .build();
-//
-//        try {
-//            String authUrl = credentials.getAuthorizationUrl();
-//        } catch (UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//        }
-//
-//        String code = "EcN4X4lsytRWm3U4Xdbny0KcRZKQiG";
-//        String accessToken = "KA.eyJ2ZXJzaW9uIjoyLCJpZCI6IjZkdEttYVBIUXFXVlAvYzF0R3Noemc9PSIsImV4cGlyZXNfYXQiOjE1MzE2NTY2MDAsInBpcGVsaW5lX2tleV9pZCI6Ik1RPT0iLCJwaXBlbGluZV9pZCI6MX0.sYuKpVZKlyt0uls6uTn2rkvVwAnd89fPYMukLWKE31w";
-//        Credential credential1 = credentials.authenticate(code, accessToken);
-////        credentials.
-//        Credential credential = credentials.loadCredential(accessToken);
-//        CredentialsSession credentialsSession = new CredentialsSession(config, credential);
-//        RidesService ridesService = UberRidesApi.with(credentialsSession).build().createService();
-//        Call<UserProfile> userProfile = ridesService.getUserProfile();
-//        try {
-//            Response<UserProfile> response = ridesService.getUserProfile().execute();
-//            if (response.isSuccessful()) {
-//                UserProfile profile = response.body();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
 }

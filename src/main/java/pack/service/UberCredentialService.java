@@ -16,8 +16,9 @@ public class UberCredentialService {
         return uberCredentialRepository.findByUserChatId(chatId);
     }
 
-    public void save(UberCredential uberCredential) {
-        uberCredentialRepository.save(uberCredential);
+    public boolean save(UberCredential uberCredential) {
+        UberCredential saved = uberCredentialRepository.save(uberCredential);
+        return saved != null;
     }
 
     public String getAccessTokenByUser(User user) {

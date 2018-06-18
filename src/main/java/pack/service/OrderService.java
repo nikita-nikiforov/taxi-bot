@@ -37,7 +37,7 @@ public class OrderService {
     }
 
     public void addEndPoint(User user, LatLng latLng) {
-//        Optional<User> daoUser = userService.getByChatId(user.getChatId());
+//        Optional<User> daoUser = userService.getOptionalByChatId(user.getChatId());
         Orderr order = orderRepository.findByUserChatId(user.getChatId());
         order.setEndLat(latLng.lat);
         order.setEndLong(latLng.lng);

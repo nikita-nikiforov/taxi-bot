@@ -3,6 +3,7 @@ package pack.handler;
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
 import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
+import com.botscrew.messengercdk.model.outgoing.builder.ListTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.SenderAction;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import com.botscrew.messengercdk.model.outgoing.element.WebAction;
@@ -11,14 +12,21 @@ import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import pack.entity.User;
+import pack.json.HistoryItem;
+import pack.service.MessageService;
 import pack.service.UberService;
 import pack.service.UserService;
+
+import java.util.List;
 
 @ChatEventsProcessor
 public class UberHandler {
 
-    @Value("${auth-url}")
-    private String AUTH_URL;
+    @Value("${uber-login-link}")
+    private String LOGIN_LINK;
+
+    @Value("${uber-logout-link}")
+    private String LOGOUT_LINK;
 
     @Autowired
     Sender sender;
@@ -29,7 +37,12 @@ public class UberHandler {
     @Autowired
     UserService userService;
 
-    @Postback(value = "UBER_CALL", states = "LOGGED")
+    @Autowired
+    MessageService messageService;
+
+    // TODO
+
+    @Postback(value = "UBER_AUTH", states = "INITIAL")
     public void makeUberOrder(User user) {
 //        JSONObject jsonObject = uberService.makeMagic(user);
 
@@ -39,19 +52,45 @@ public class UberHandler {
                 .subtitle("Subtitle")
                 .imageUrl(IMAGE_URL)
                 .build();
-        Request request = GenericTemplate.builder()
+        Request request = ListTemplate.builder()
                 .addElement(TemplateElement.builder()
-                        .title("Azazaza")
-                        .subtitle("OLOLOLOLO")
+                        .title("Authorization")
+                        .imageUrl(IMAGE_URL)
+                        .build())
+                .addElement(TemplateElement.builder()
+                        .title("Uber log in")
+                        .subtitle("Authorization link")
                     .defaultAction(WebAction.builder()
-                            .url(AUTH_URL)
+                            .url(LOGIN_LINK + "&state=" + user.getChatId())
                             .makeTallWebView()
                             .build())
                 .build())
+                .addElement(TemplateElement.builder()
+                        .title("Uber log out")
+                        .subtitle("Link to log out")
+                        .defaultAction(WebAction.builder()
+                                .url(LOGOUT_LINK)
+                                .makeTallWebView()
+                                .build())
+                        .build())
                 .user(user)
                 .build();
 
         sender.send(SenderAction.typingOn(user));
+        sender.send(request);
+    }
+
+    @Postback(value = "SHOW_TRIPS")
+    public void handleDefaultButton(User user) {
+        List<HistoryItem> list = uberService.getHistoryList(user);
+//        String answer = messageService.getHistoryRides(list);
+        List<TemplateElement> templateElements = messageService.getTemplateElements(list);
+
+        Request request = GenericTemplate.builder()
+                .elements(templateElements)
+                .user(user)
+                .build();
+
         sender.send(request);
     }
 }

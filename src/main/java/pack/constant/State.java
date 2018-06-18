@@ -25,7 +25,7 @@ public enum State {
         public static final String INITIAL_VALUE = "INITIAL";
         public static final String START_INPUT_VALUE = "START_INPUT";
         public static final String START_INPUT_TRUE_VALUE = "START_INPUT_TRUE";
-        public static final String START_INPUT_FALSE_VALUE = "START_INPUT_FALSE";
+        public static final String START_INPUT_FALSE_VALUE = "PRODUCTS_ABSENT";
         public static final String END_INPUT_VALUE = "END_INPUT";
         public static final String WAIT_FOR_CAR_VALUE = "WAIT_FOR_CAR";
     }

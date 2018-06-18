@@ -5,7 +5,7 @@ public enum MessageText {
     AUTHORIZED("Great! What to you want to do now?"),
     START_INPUT("Please, attach the start location or just write the address."),
     START_INPUT_TRUE("Awesome! Now enter the end point."),
-    START_INPUT_FALSE("Your location is not supported. Another one?"),
+    PRODUCTS_ABSENT("Sadly, there's no any available taxi in your region."),
     END_INPUT_TRUE("Nice! Now wait for a car."),
     END_INPUT_FALSE("Unfortunately, we can't drive you here :( " +
             "\nBut maybe you want to go somewhere else?"),

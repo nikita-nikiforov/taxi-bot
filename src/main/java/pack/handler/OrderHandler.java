@@ -13,11 +13,10 @@ import com.google.maps.model.LatLng;
 import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.MessageText;
 import pack.entity.User;
-import pack.service.GeocodingService;
-import pack.service.OrderService;
-import pack.service.UberService;
-import pack.service.UserService;
+import pack.json.ProductItem;
+import pack.service.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @ChatEventsProcessor
@@ -34,6 +33,9 @@ public class OrderHandler {
 
     @Autowired
     private UberService uberService;
+
+    @Autowired
+    private UberOrderService uberOrderService;
 
     @Autowired
     private OrderService orderService;
@@ -59,7 +61,7 @@ public class OrderHandler {
             userService.save(user, "END_INPUT");
             answer = MessageText.START_INPUT_TRUE.toString();
         } else {
-            answer = MessageText.START_INPUT_FALSE.toString();
+            answer = MessageText.PRODUCTS_ABSENT.toString();
         }
 
         Request request = QuickReplies.builder()
@@ -73,13 +75,29 @@ public class OrderHandler {
     @Location(states = {"START_INPUT"})
     public void handleStartInputLocation(User user, @Location Coordinates coord) {
         LatLng startPoint = new LatLng(coord.getLatitude(), coord.getLongitude());
-        orderService.createOrder(user, startPoint);
-        userService.save(user, "END_INPUT");
-        Request request = QuickReplies.builder()
-                .user(user)
-                .text(MessageText.START_INPUT_TRUE.toString())
-                .location()
-                .build();
+        Request request;
+
+        // Check whether any product is available
+        List<ProductItem> productsNearBy = uberOrderService.getProductsNearBy(user, coord);
+
+        if (!productsNearBy.isEmpty()) {
+            orderService.createOrder(user, startPoint);
+            userService.save(user, "END_INPUT");
+            request = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.START_INPUT_TRUE.toString())
+                    .location()
+                    .build();
+        } else {
+            userService.save(user, "LOGGED");
+            request = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.PRODUCTS_ABSENT.toString())
+                    .location()
+                    .build();
+        }
+
+
         sender.send(request);
     }
 
