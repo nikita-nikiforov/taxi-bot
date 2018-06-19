@@ -24,6 +24,11 @@ public class AppProperties {
     @Value("${uber.client-id}")
     private String CLIENT_ID;
 
+    @Value("${mapbox.access-token}")
+    private String MAPBOX_ACCESS_TOKEN;
+
+    @Value("${map-icon-url}")
+    private String MAP_ICON_URL;
 
     public String getLOGIN_LINK() {
         return LOGIN_LINK;
@@ -47,5 +52,13 @@ public class AppProperties {
 
     public String getCLIENT_ID() {
         return CLIENT_ID;
+    }
+
+    public String getMAPBOX_ACCESS_TOKEN() {
+        return MAPBOX_ACCESS_TOKEN;
+    }
+
+    public String getMAP_ICON_URL() {
+        return MAP_ICON_URL;
     }
 }

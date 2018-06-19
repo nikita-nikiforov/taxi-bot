@@ -23,6 +23,10 @@ public class Orderr {
     public Orderr() {
     }
 
+    public Orderr(User user) {
+        this.user = user;
+    }
+
     public double getEndLat() {
         return endLat;
     }

@@ -31,7 +31,7 @@ public class UberAuthService {
 
     // TODO
     public boolean authorizeUser(Long chatId, String code) {
-        UberCredential myCredential = new UberCredential();     // Credential entity to save
+        UberCredential myCredential = new UberCredential();     // Credential entity to setStartLocation
         User user = userService.getUserByChatId(chatId);        // Get user by ChatId
         UberAccessTokenResponse accessTokenResponse = getAccessTokenResponse(code); // Get access_token
 

@@ -35,6 +35,7 @@ public class Initialization {
         );
 
         messenger.setPersistentMenu(menu);
+//        messenger.setWhitelistedDomains(Arrays.asList("imgur.com"));
     }
 
 //    @PostConstruct

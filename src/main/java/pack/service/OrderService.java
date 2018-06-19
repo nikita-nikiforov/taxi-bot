@@ -33,14 +33,14 @@ public class OrderService {
         return geocodingService.getCoordinatesFromAddress(address);
     }
 
-    public void createOrder(User user, Coordinates coord) {
-
-        Orderr order = new Orderr();
-        order.setStartLat(coord.getLatitude());
-        order.setStartLong(coord.getLongitude());
-        order.setUser(user);
-        orderRepository.save(order);
+    public void setStartLocation(User user, Coordinates coord) {
+        Optional<Orderr> foundOrder = getOrderOptionalByChatId(user.getChatId());
+        Orderr result = foundOrder.orElseGet(() -> new Orderr(user));
+        result.setStartLat(coord.getLatitude());
+        result.setStartLong(coord.getLongitude());
+        orderRepository.save(result);
     }
+
 
     public void addEndPoint(User user, Coordinates coord) {
         Orderr order = orderRepository.findByUserChatId(user.getChatId());
@@ -69,8 +69,24 @@ public class OrderService {
         return orderRepository.findByUserChatId(chatId);
     }
 
+    public Optional<Orderr> getOrderOptionalByChatId(long chatId) {     // Return optional
+        Optional<Orderr> optional = Optional.empty();
+        Orderr foundOrder = orderRepository.findByUserChatId(chatId);
+        if (foundOrder != null) {
+            optional = Optional.of(foundOrder);
+        }
+        return optional;
+    }
+
     public void saveFareId(Orderr order, String fareId) {
         order.setFare_id(fareId);
         orderRepository.save(order);
     }
+
+    public void updateStartPoint(Orderr order, Coordinates coord) {
+        order.setStartLat(coord.getLatitude());
+        order.setStartLong(coord.getLongitude());
+        orderRepository.save(order);
+    }
+
 }
