@@ -1,4 +1,4 @@
-package pack.json;
+package pack.model;
 
 public class HistoryItem {
     private String status;

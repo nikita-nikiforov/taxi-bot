@@ -1,4 +1,4 @@
-package pack.json;
+package pack.model;
 
 public class UberAuthorize {
 

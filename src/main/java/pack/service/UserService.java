@@ -4,6 +4,7 @@ import com.botscrew.messengercdk.model.MessengerUser;
 import com.botscrew.messengercdk.service.UserProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pack.constant.State;
 import pack.dao.UserRepository;
 import pack.entity.User;
 
@@ -19,7 +20,7 @@ public class UserService implements UserProvider {
     public MessengerUser getByChatIdAndPageId(Long chatId, Long pageId) {
         Optional<User> result = getOptionalByChatId(chatId);
         // If present, return user. Otherwise, create new one
-        return result.orElseGet(() -> new User(chatId, "INITIAL"));
+        return result.orElseGet(() -> new User(chatId, State.INITIAL));
     }
 
     public Optional<User> getOptionalByChatId(long chatId) {
@@ -27,7 +28,7 @@ public class UserService implements UserProvider {
     }
 
     public User getUserByChatId(long chatId) {
-        return userRepository.findByChatId(chatId).get();
+            return userRepository.findByChatId(chatId).get();
     }
 
     public void save(long chatId, String state) {

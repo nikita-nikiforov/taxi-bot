@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import pack.entity.User;
-import pack.json.ProductItem;
+import pack.model.ProductItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +24,7 @@ public class UberOrderService {
     @Autowired
     private Gson gson;
 
+    // To determine whether there's a taxi
     public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
         Map<String, String> params = new HashMap<>();
         params.put("latitude", coord.getLatitude().toString());
@@ -41,4 +42,6 @@ public class UberOrderService {
         });
         return productItems;
     }
+
+//    public
 }

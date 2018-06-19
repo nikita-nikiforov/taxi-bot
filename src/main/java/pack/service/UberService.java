@@ -13,7 +13,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pack.entity.User;
 import pack.init.Initialization;
-import pack.json.HistoryItem;
+import pack.model.EstimateRequest;
+import pack.model.EstimateResponse;
+import pack.model.HistoryItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +74,7 @@ public class UberService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + access_token);
         headers.set("Accept-Language", "en_US ");
-        headers.set("Content-Type", "application/json ");
+        headers.set("Content-Type", "application/json");
 
         HttpEntity entity = new HttpEntity<>(headers);
 
@@ -90,5 +92,27 @@ public class UberService {
 
     public JSONObject retrieveJson(User user, String url, HttpMethod method) {
         return retrieveJson(user, url, method, new HashMap<>());
+    }
+
+    public EstimateResponse getEstimateResponse(User user, EstimateRequest estimateRequest) {
+
+        String url = "https://sandbox-api.uber.com/v1.2/requests/estimate";
+
+        return postWithJsonRequest(user, url, estimateRequest, EstimateResponse.class);
+    }
+
+    public <T> T postWithJsonRequest(User user, String url, Object request, Class<T> clazz) {
+        RestTemplate restTemplate = new RestTemplate();
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Accept-Language", "en_US");
+        headers.set("Content-Type", "application/json ");
+
+        String requestJson = gson.toJson(request);
+        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+        T response = restTemplate.postForObject(url, entity, clazz);
+        return response;
     }
 }

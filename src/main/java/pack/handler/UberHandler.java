@@ -11,8 +11,10 @@ import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import pack.constant.Payload;
+import pack.constant.State;
 import pack.entity.User;
-import pack.json.HistoryItem;
+import pack.model.HistoryItem;
 import pack.service.MessageService;
 import pack.service.UberService;
 import pack.service.UserService;
@@ -42,7 +44,7 @@ public class UberHandler {
 
     // TODO
 
-    @Postback(value = "UBER_AUTH", states = "INITIAL")
+    @Postback(value = Payload.UBER_AUTH, states = State.INITIAL)
     public void makeUberOrder(User user) {
 //        JSONObject jsonObject = uberService.makeMagic(user);
 
@@ -80,7 +82,7 @@ public class UberHandler {
         sender.send(request);
     }
 
-    @Postback(value = "SHOW_TRIPS")
+    @Postback(value = Payload.SHOW_TRIPS)
     public void handleDefaultButton(User user) {
         List<HistoryItem> list = uberService.getHistoryList(user);
 //        String answer = messageService.getHistoryRides(list);

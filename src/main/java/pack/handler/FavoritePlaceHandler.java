@@ -15,6 +15,7 @@ import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.MessageText;
+import pack.constant.State;
 import pack.entity.FavoritePlace;
 import pack.entity.User;
 import pack.service.FavPlaceService;
@@ -40,7 +41,7 @@ public class FavoritePlaceHandler {
         userService.save(user, "FAV_PLACE_INPUT_MAP");
         Request request = QuickReplies.builder()
                 .user(user)
-                .text(MessageText.FAV_PLACE_INPUT_MAP.toString())
+                .text(MessageText.FAV_PLACE_INPUT_MAP)
                 .location()
                 .build();
         sender.send(request);
@@ -52,7 +53,7 @@ public class FavoritePlaceHandler {
         userService.save(user, "FAV_PLACE_INPUT_NAME");
         Request request = TextMessage.builder()
                 .user(user)
-                .text(MessageText.FAV_PLACE_INPUT_NAME.toString())
+                .text(MessageText.FAV_PLACE_INPUT_NAME)
                 .build();
         sender.send(request);
     }
@@ -60,10 +61,10 @@ public class FavoritePlaceHandler {
     @Text(states = "FAV_PLACE_INPUT_NAME")
     public void handleFavPlaceInputName(User user, @Text String text) {
         favPlaceService.savePlaceName(user, text);
-        userService.save(user, "LOGGED");
+        userService.save(user, State.LOGGED);
         Request request = TextMessage.builder()
                 .user(user)
-                .text(MessageText.FAV_PLACE_ADDED.toString())
+                .text(MessageText.FAV_PLACE_ADDED)
                 .build();
         sender.send(request);
     }

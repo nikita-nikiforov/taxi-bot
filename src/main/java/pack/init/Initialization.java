@@ -2,7 +2,6 @@ package pack.init;
 
 import com.botscrew.messengercdk.model.outgoing.element.button.GetStartedButton;
 import com.botscrew.messengercdk.model.outgoing.profile.Greeting;
-import com.botscrew.messengercdk.model.outgoing.profile.menu.NestedMenuItem;
 import com.botscrew.messengercdk.model.outgoing.profile.menu.PersistentMenu;
 import com.botscrew.messengercdk.model.outgoing.profile.menu.PostbackMenuItem;
 import com.botscrew.messengercdk.model.outgoing.profile.menu.WebMenuItem;
@@ -31,31 +30,12 @@ public class Initialization {
 
         PersistentMenu menu = new PersistentMenu(
                 Arrays.asList(
-                        new PostbackMenuItem("Order a taxi", "MAKE_ORDER"),
-                        new PostbackMenuItem("Show the last trips", "SHOW_TRIPS"),
-                        NestedMenuItem.builder()
-                            .title("Others")
-                            .addMenuItem(new PostbackMenuItem("Add favorite location",
-                                    "ADD_PLACE"))
-                            .addMenuItem(NestedMenuItem.builder()
-                                    .title("Current trip features")
-                                    .addMenuItem(PostbackMenuItem.builder()
-                                            .title("Rate the trip")
-                                            .payload("RATE_TRIP")
-                                            .build())
-                                    .addMenuItem(PostbackMenuItem.builder()
-                                            .title("Show driver info")
-                                            .payload("DRIVER_INFO")
-                                            .build())
-                                    .build())
-                            .addMenuItem(new PostbackMenuItem("Call support", "CALL_SUPPORT"))
-                            .addMenuItem(new WebMenuItem("Visit our website", "https://uber.com"))
-                            .build()
+                        new PostbackMenuItem("Call support", "CALL_SUPPORT"),
+                        new WebMenuItem("Visit our website", "https://uber.com")
                 )
         );
 
         messenger.setPersistentMenu(menu);
-
     }
 
 //    @PostConstruct
@@ -67,7 +47,6 @@ public class Initialization {
 //                        WebHook.Field.POSTBACKS
 //                ));
 //    }
-
 
     public String getBASE_URL() {
         return BASE_URL;

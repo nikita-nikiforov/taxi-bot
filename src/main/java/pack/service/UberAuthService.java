@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import pack.entity.UberCredential;
 import pack.entity.User;
 import pack.init.Initialization;
-import pack.json.UberAccessTokenResponse;
+import pack.model.UberAccessTokenResponse;
 
 @Service
 public class UberAuthService {

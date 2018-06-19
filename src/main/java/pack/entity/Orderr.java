@@ -13,6 +13,7 @@ public class Orderr {
 
     private double endLat;
     private double endLong;
+    private String fare_id;
 
 
     @ManyToOne
@@ -60,5 +61,13 @@ public class Orderr {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getFare_id() {
+        return fare_id;
+    }
+
+    public void setFare_id(String fare_id) {
+        this.fare_id = fare_id;
     }
 }

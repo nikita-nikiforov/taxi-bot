@@ -3,7 +3,8 @@ package pack.service;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pack.json.HistoryItem;
+import pack.model.EstimateResponse;
+import pack.model.HistoryItem;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -48,5 +49,16 @@ public class MessageService {
             result.add(templateElement);
         }
         return result;
+    }
+
+    public String getEstimateRide(EstimateResponse estimateResponse) {
+        StringBuilder answer = new StringBuilder();
+        answer.append("Pickup in ").append(estimateResponse.getPickup_estimate()).append(" minutes\n");
+        answer.append("Trip duration: ").append(estimateResponse.getTrip().getDuration_estimate() / 60)
+                .append(" minutes\n");
+        answer.append("Trip distance: ").append(estimateResponse.getTrip().getDistance_estimate())
+                .append(" ").append(estimateResponse.getTrip().getDistance_unit()).append("\n");
+        answer.append("Price: ").append(estimateResponse.getFare().getDisplay());
+        return answer.toString();
     }
 }
