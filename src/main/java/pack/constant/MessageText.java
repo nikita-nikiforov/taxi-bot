@@ -3,11 +3,12 @@ package pack.constant;
 public class MessageText {
     public static final String GET_STARTED_INITIAL = "Hi! Welcome to Taxi Bot. Firstly, authorize in Uber.";
     public static final String INITIAL = "Authorize in Uber, please.";
-    public static final String AUTHORIZED = "Great! What to you want to do now?";
+    public static final String LOGGED = "What to you want to do now?";
     public static final String FAILED_AUTH = "You failed to authorize in Uber :(\nMaybe, try again?";
     public static final String START_INPUT = "Please, attach the start location or just write the address.";
     public static final String START_INPUT_TRUE = "Awesome! Now enter the end point.";
-    public static final String PRODUCTS_ABSENT = "Sadly, there's no any available taxi in your region.";
+    public static final String PLACE_NOT_FOUND = "Sadly, I can't find this place. Write it down " +
+            "a little clearer or attach the location:";
     public static final String END_INPUT_TRUE = "Nice! Now wait for a car.";
     public static final String END_INPUT_FALSE = "Unfortunately, we can't drive you here :( " +
             "\nBut maybe you want to go somewhere else?";

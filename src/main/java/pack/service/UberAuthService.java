@@ -1,7 +1,6 @@
 package pack.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import pack.entity.UberCredential;
 import pack.entity.User;
+import pack.init.AppProperties;
 import pack.init.Initialization;
 import pack.model.UberAccessTokenResponse;
 
@@ -18,22 +18,16 @@ import pack.model.UberAccessTokenResponse;
 public class UberAuthService {
 
     @Autowired
-    UberCredentialService uberCredentialService;
+    private UberCredentialService uberCredentialService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    Initialization initialization;
+    private Initialization initialization;
 
-    @Value("${my-uber-access-key}")
-    private String MY_ACCESS_KEY;
-
-    @Value("${uber.client-secret}")
-    private String CLIENT_SECRET;
-
-    @Value("${uber.client-id}")
-    private String CLIENT_ID;
+    @Autowired
+    private AppProperties appProperties;
 
     // TODO
     public boolean authorizeUser(Long chatId, String code) {
@@ -74,10 +68,10 @@ public class UberAuthService {
 
     private MultiValueMap getParamsToObtainAccessToken(String code) {
         MultiValueMap<String, String> request = new LinkedMultiValueMap();
-        request.add("client_secret", CLIENT_SECRET);
-        request.add("client_id", CLIENT_ID);
+        request.add("client_secret", appProperties.getCLIENT_SECRET());
+        request.add("client_id", appProperties.getCLIENT_ID());
         request.add("grant_type", "authorization_code");
-        request.add("redirect_uri", initialization.getBASE_URL() + "uber-link");
+        request.add("redirect_uri", appProperties.getBASE_URL() + "uber-link");
         request.add("code", code);
         return request;
     }

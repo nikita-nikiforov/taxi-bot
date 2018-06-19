@@ -1,10 +1,10 @@
 package pack.service;
 
+import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
-import com.google.maps.model.LatLng;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -23,13 +23,17 @@ public class GeocodingService {
                 .build();
     }
 
-    public Optional<LatLng> getAddress(String address) {
-        Optional<LatLng> result = Optional.empty();                // to return
+    public Optional<Coordinates> getCoordinatesFromAddress(String address) {
+        Optional<Coordinates> result = Optional.empty();                // to return
         try {
+            // Request to Google
             GeocodingResult[] geoResults = GeocodingApi.geocode(geoApiContext, address).await();
             if (geoResults.length > 0) {
-                GeocodingResult geoResult = geoResults[0];
-                result = Optional.of(geoResult.geometry.location);
+                GeocodingResult geoResult = geoResults[0];      // Get the first
+                Coordinates coord = new Coordinates();          // Transform to Coordinates
+                coord.setLatitude(geoResult.geometry.location.lat);
+                coord.setLongitude(geoResult.geometry.location.lng);
+                result = Optional.of(coord);
             }
 
         } catch (ApiException e) {

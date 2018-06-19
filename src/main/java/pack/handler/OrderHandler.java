@@ -9,14 +9,16 @@ import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
 import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
-import com.google.maps.model.LatLng;
 import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.MessageText;
 import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
 import pack.model.ProductItem;
-import pack.service.*;
+import pack.service.OrderService;
+import pack.service.UberOrderService;
+import pack.service.UberService;
+import pack.service.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,9 +31,6 @@ public class OrderHandler {
 
     @Autowired
     private Sender sender;
-
-    @Autowired
-    private GeocodingService geocodingService;
 
     @Autowired
     private UberService uberService;
@@ -57,13 +56,15 @@ public class OrderHandler {
     @Text(states = {State.START_INPUT})
     public void handleStartInputText(User user, @Text String text) {
         String answer;
-        Optional<LatLng> startPoint = orderService.handleAddress(text);
+        Optional<Coordinates> startPoint = orderService.handleAddress(text);
+
         if (startPoint.isPresent()) {
-            orderService.createOrder(user, startPoint.get());
+            Coordinates coord = startPoint.get();
+            orderService.createOrder(user, coord);
             userService.save(user, State.END_INPUT);
             answer = MessageText.START_INPUT_TRUE;
         } else {
-            answer = MessageText.PRODUCTS_ABSENT;
+            answer = MessageText.PLACE_NOT_FOUND;
         }
 
         Request request = QuickReplies.builder()
@@ -76,14 +77,13 @@ public class OrderHandler {
 
     @Location(states = {State.START_INPUT})
     public void handleStartInputLocation(User user, @Location Coordinates coord) {
-        LatLng startPoint = new LatLng(coord.getLatitude(), coord.getLongitude());
         Request request;
 
         // Check whether any product is available
         List<ProductItem> productsNearBy = uberOrderService.getProductsNearBy(user, coord);
 
         if (!productsNearBy.isEmpty()) {
-            orderService.createOrder(user, startPoint);
+            orderService.createOrder(user, coord);
             userService.save(user, State.END_INPUT);
             request = QuickReplies.builder()
                     .user(user)
@@ -94,7 +94,7 @@ public class OrderHandler {
             userService.save(user, State.LOGGED);
             request = QuickReplies.builder()
                     .user(user)
-                    .text(MessageText.PRODUCTS_ABSENT)
+                    .text(MessageText.PLACE_NOT_FOUND)
                     .build();
         }
 
@@ -106,16 +106,13 @@ public class OrderHandler {
     @Text(states = State.END_INPUT)
     public void handleEndInput(User user, @Text String text) {
         Request request;
-
         String answer;
-        Optional<LatLng> endPoint = orderService.handleAddress(text);
-        if (endPoint.isPresent()) {
-            Coordinates coord = new Coordinates();
-            coord.setLatitude(endPoint.get().lat);
-            coord.setLongitude(endPoint.get().lng);
 
-            orderService.addEndPoint(user, coord);
-            userService.save(user, State.FARE_CONFIRMATION);
+        Optional<Coordinates> endPoint = orderService.handleAddress(text);  // get Coordinates
+        if (endPoint.isPresent()) {
+            Coordinates coord = endPoint.get();
+            orderService.addEndPoint(user, coord);                  // Set them to order in DB
+            userService.save(user, State.FARE_CONFIRMATION);        // Update user's state
             answer = MessageText.END_INPUT_TRUE;
             request = TextMessage.builder()
                     .user(user)

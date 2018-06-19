@@ -7,7 +7,6 @@ import com.botscrew.messengercdk.model.outgoing.profile.menu.PostbackMenuItem;
 import com.botscrew.messengercdk.model.outgoing.profile.menu.WebMenuItem;
 import com.botscrew.messengercdk.service.Messenger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -17,10 +16,10 @@ import java.util.Arrays;
 public class Initialization {
 
     @Autowired
-    Messenger messenger;
+    private AppProperties appProperties;
 
-    @Value("${ngrok-url}")
-    private String BASE_URL;
+    @Autowired
+    Messenger messenger;
 
     @PostConstruct
     public void initMessengerProfile() {
@@ -47,8 +46,4 @@ public class Initialization {
 //                        WebHook.Field.POSTBACKS
 //                ));
 //    }
-
-    public String getBASE_URL() {
-        return BASE_URL;
-    }
 }

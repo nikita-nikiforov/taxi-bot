@@ -1,7 +1,6 @@
 package pack.service;
 
 import com.botscrew.messengercdk.model.incomming.Coordinates;
-import com.google.maps.model.LatLng;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.dao.OrderRepository;
@@ -30,23 +29,20 @@ public class OrderService {
     @Autowired
     MessageService messageService;
 
-    public Optional<LatLng> handleAddress(String address) {
-        Optional<LatLng> coordinates = geocodingService.getAddress(address);
-
-        return coordinates;
+    public Optional<Coordinates> handleAddress(String address) {
+        return geocodingService.getCoordinatesFromAddress(address);
     }
 
-    public void createOrder(User user, LatLng latLng) {
+    public void createOrder(User user, Coordinates coord) {
 
         Orderr order = new Orderr();
-        order.setStartLat(latLng.lat);
-        order.setStartLong(latLng.lng);
+        order.setStartLat(coord.getLatitude());
+        order.setStartLong(coord.getLongitude());
         order.setUser(user);
         orderRepository.save(order);
     }
 
     public void addEndPoint(User user, Coordinates coord) {
-//        Optional<User> daoUser = userService.getOptionalByChatId(user.getChatId());
         Orderr order = orderRepository.findByUserChatId(user.getChatId());
         order.setEndLat(coord.getLatitude());
         order.setEndLong(coord.getLongitude());
