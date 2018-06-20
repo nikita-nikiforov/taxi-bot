@@ -11,11 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import pack.dao.OrderUberInfoRepository;
+import pack.entity.Order;
+import pack.entity.OrderUberInfo;
 import pack.entity.User;
 import pack.init.Initialization;
-import pack.model.EstimateRequest;
-import pack.model.EstimateResponse;
-import pack.model.HistoryItem;
+import pack.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +40,9 @@ public class UberService {
 
     @Autowired
     OrderService orderService;
+
+    @Autowired
+    private OrderUberInfoRepository orderUberInfoRepository;
 
     // TODO
     public JSONObject makeOrder(User user) {
@@ -115,4 +119,19 @@ public class UberService {
         T response = restTemplate.postForObject(url, entity, clazz);
         return response;
     }
+
+    public TripResponse getNewTripResponse(User user) {
+
+        OrderUberInfo uberInfo = orderUberInfoRepository.findByOrderUserChatId(user.getChatId());
+        Order order = orderService.getOrderByChatId(user.getChatId());
+        MakeTripRequest jsonBody = new MakeTripRequest(order, uberInfo);
+
+        TripResponse tripResponse = postWithJsonRequest(user, "https://sandbox-api.uber.com/v1.2/requests", jsonBody, TripResponse.class);
+        // TODO Handle errors
+        return tripResponse;
+    }
+
+//    public TripResponse getTripResponse() {
+//
+//    }
 }

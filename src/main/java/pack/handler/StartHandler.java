@@ -63,13 +63,13 @@ public class StartHandler {
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.INITIAL)
-                .postback("Log in", Payload.UBER_AUTH)
+                .postback("Log in", Payload.UBER_AUTH)  // TODO
                 .build();
         sender.send(request);
     }
 
     @Text(states = {State.LOGGED})
-    public void handleAuthorizedState(MessengerUser user) {
+    public void handleAuthorizedState(User user) {
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.LOGGED)

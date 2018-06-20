@@ -8,4 +8,5 @@ public class State {
     public static final String END_INPUT = "END_INPUT";
     public static final String END_TEXT_ASKED = "END_TEXT_ASKED";
     public static final String FARE_CONFIRMATION = "FARE_CONFIRMATION";
+    public static final String TRIP_PROCESSING = "TRIP_PROCESSING";
 }

@@ -1,10 +1,14 @@
 package pack.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pack.entity.Orderr;
+import pack.entity.Order;
 
-public interface OrderRepository extends JpaRepository<Orderr, Integer>{
-    Orderr findByUserId(int id);
+public interface OrderRepository extends JpaRepository<Order, Integer>{
+    Order findByUserId(int id);
 
-    Orderr findByUserChatId(Long id);
+    Order findByUserChatId(long id);
+
+    void deleteByUserChatId(long id);
+
+    void deleteByUserId(int id);
 }

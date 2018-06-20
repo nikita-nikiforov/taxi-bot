@@ -3,7 +3,7 @@ package pack.constant;
 public class MessageText {
     public static final String GET_STARTED_INITIAL = "Hi! Welcome to Taxi Bot. Firstly, authorize in Uber.";
     public static final String INITIAL = "Authorize in Uber, please.";
-    public static final String LOGGED = "What to you want to do now?";
+    public static final String LOGGED = "What do you want to do now?";
     public static final String FAILED_AUTH = "You failed to authorize in Uber :(\nMaybe, try again?";
     public static final String START_INPUT = "Please, attach the start location or just write the address.";
     public static final String TEXT_ASKED_TITLE = "Did you mean this place?";
@@ -16,10 +16,11 @@ public class MessageText {
     public static final String END_INPUT_TRUE = "Nice! Now wait for a car.";
     public static final String END_INPUT_FALSE = "Unfortunately, we can't drive you here :( " +
             "\nBut maybe you want to go somewhere else?";
-    public static final String WAIT_FOR_CAR = "You're waiting for a car.";
+    public static final String TRIP_PROCESSING = "Your ride is being processed now. Wait for driver " +
+            "acceptance.";
     public static final String EXIT = "Okay! If you want to order a taxi again, \" +\n" +
             "            \"write to me. Have a nice day :)";
-    public static final String FAV_PLACE_INPUT_MAP = "Select the place you want to setStartLocation.";
+    public static final String FAV_PLACE_INPUT_MAP = "Select the place you want to setStartPoint.";
     public static final String FAV_PLACE_INPUT_NAME = "Enter the name of this place.";
     public static final String FAV_PLACE_ADDED = "The place was saved!";
 

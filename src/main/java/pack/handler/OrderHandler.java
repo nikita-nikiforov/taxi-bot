@@ -7,6 +7,7 @@ import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
+import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.MessageText;
 import pack.constant.Payload;
 import pack.constant.State;
-import pack.entity.Orderr;
 import pack.entity.User;
 import pack.model.ProductItem;
 import pack.service.*;
@@ -44,6 +44,9 @@ public class OrderHandler {
     @Autowired
     private MapboxService mapboxService;
 
+    @Autowired
+    private StartHandler startHandler;
+
     @Postback(value = Payload.MAKE_ORDER, states = State.LOGGED)
     public void handleMakeOrder(User user) {
         userService.save(user.getChatId(), State.START_INPUT);
@@ -56,24 +59,24 @@ public class OrderHandler {
         sender.send(request);
     }
 
-    @Text(states = {State.START_INPUT})
+    @Text(states = {State.START_INPUT, State.START_TEXT_ASKED})
     public void handleStartInputText(User user, @Text String text) {
         Optional<Coordinates> startPoint = orderService.handleAddress(text);
 
         if (startPoint.isPresent()) {
             Coordinates coord = startPoint.get();
-            orderService.setStartLocation(user, coord);
+            orderService.setStartPoint(user, coord);
 
             userService.save(user, State.START_TEXT_ASKED);
 
             Request request = GenericTemplate.builder()
                     .addElement(TemplateElement.builder()
-                        .title(MessageText.TEXT_ASKED_TITLE)
-                        .subtitle(MessageText.START_TEXT_ASKED_SUBTITLE)
-                        .imageUrl(mapboxService.getConfirmAddressMapUrl(coord))
-                        .button(new PostbackButton("Yes", Payload.CONFIRM_START_POINT))
-                        .button(new PostbackButton("No", Payload.DISCARD_START_POINT))
-                        .build())
+                            .title(MessageText.TEXT_ASKED_TITLE)
+                            .subtitle(MessageText.START_TEXT_ASKED_SUBTITLE)
+                            .imageUrl(mapboxService.getConfirmAddressMapUrl(coord))
+                            .button(new PostbackButton("Yes", Payload.CONFIRM_START_POINT))
+                            .button(new PostbackButton("No", Payload.DISCARD_START_POINT))
+                            .build())
                     .user(user)
                     .build();
 
@@ -90,12 +93,7 @@ public class OrderHandler {
 
     @Postback(value = Payload.CONFIRM_START_POINT)
     public void handleConfirmStartPoint(User user) {
-        Orderr order = orderService.getOrderByChatId(user.getChatId());
-
-        Coordinates coord = new Coordinates();
-        coord.setLatitude(order.getStartLat());
-        coord.setLongitude(order.getStartLong());
-
+        Coordinates coord = orderService.getStartPointCoordinates(user);
         handleStartInputLocation(user, coord);
     }
 
@@ -113,7 +111,7 @@ public class OrderHandler {
         List<ProductItem> productsNearBy = uberOrderService.getProductsNearBy(user, coord);
 
         if (!productsNearBy.isEmpty()) {
-            orderService.setStartLocation(user, coord);
+            orderService.setStartPoint(user, coord);
             userService.save(user, State.END_INPUT);
             request = QuickReplies.builder()
                     .user(user)
@@ -127,20 +125,17 @@ public class OrderHandler {
                     .text(MessageText.PLACE_NOT_FOUND)
                     .build();
         }
-
         sender.send(request);
     }
 
 
-    @Text(states = State.END_INPUT)
+    @Text(states = {State.END_INPUT, State.END_TEXT_ASKED})
     public void handleEndInput(User user, @Text String text) {
         Request request;
-        String answer;
-
         Optional<Coordinates> endPoint = orderService.handleAddress(text);  // get Coordinates
         if (endPoint.isPresent()) {
             Coordinates coord = endPoint.get();
-            orderService.addEndPoint(user, coord);                  // Set them to the order in DB
+            orderService.setEndPoint(user, coord);                  // Set them to the order in DB
             userService.save(user, State.END_TEXT_ASKED);        // Update user's state
 
             request = GenericTemplate.builder()
@@ -154,10 +149,9 @@ public class OrderHandler {
                     .user(user)
                     .build();
         } else {
-            answer = MessageText.END_INPUT_FALSE;
             request = QuickReplies.builder()
                     .user(user)
-                    .text(answer)
+                    .text(MessageText.END_INPUT_FALSE)
                     .location()
                     .build();
         }
@@ -167,12 +161,7 @@ public class OrderHandler {
 
     @Postback(value = Payload.CONFIRM_END_POINT)
     public void handleConfirmEndPoint(User user) {
-        Orderr order = orderService.getOrderByChatId(user.getChatId());
-
-        Coordinates coord = new Coordinates();
-        coord.setLatitude(order.getEndLat());
-        coord.setLongitude(order.getEndLong());
-
+        Coordinates coord = orderService.getEndPointCoordinates(user);
         handleEndLocation(user, coord);
     }
 
@@ -188,7 +177,7 @@ public class OrderHandler {
 
     @Location(states = {State.END_INPUT})
     public void handleEndLocation(User user, @Location Coordinates coord) {
-        orderService.addEndPoint(user, coord);
+        orderService.setEndPoint(user, coord);
         String estimateFare = orderService.getEstimateFare(user);
         userService.save(user, State.FARE_CONFIRMATION);
         Request request = QuickReplies.builder()
@@ -201,4 +190,24 @@ public class OrderHandler {
         sender.send(request);
     }
 
+    @Postback(value = Payload.DISCARD_RIDE)
+    public void handleDiscardRide(User user) {
+        orderService.removeByUser(user);
+        userService.save(user, State.LOGGED);
+        startHandler.handleInitialText(user);
+    }
+
+    @Postback(value = Payload.CONFIRM_RIDE)
+    public void handleConfirmRide(User user) {
+        if (orderService.confirmRide(user)) {
+            userService.save(user, State.TRIP_PROCESSING);
+            Request request = TextMessage.builder()
+                    .user(user)
+                    .text(MessageText.TRIP_PROCESSING)
+                    .build();
+            sender.send(request);
+        } else {
+            sender.send(user, "Errooor");
+        }
+    }
 }
