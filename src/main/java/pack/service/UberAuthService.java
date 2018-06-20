@@ -14,6 +14,7 @@ import pack.init.AppProperties;
 import pack.init.Initialization;
 import pack.model.UberAccessTokenResponse;
 import pack.model.UberUserProfile;
+import pack.service.api.UberApiService;
 
 @Service
 public class UberAuthService {
@@ -25,7 +26,7 @@ public class UberAuthService {
     private UserService userService;
 
     @Autowired
-    private UberService uberService;
+    private UberApiService uberApiService;
 
     @Autowired
     private Initialization initialization;
@@ -44,7 +45,7 @@ public class UberAuthService {
         myCredential.setUser(user);                       // Set user to credential
         uberCredentialService.save(myCredential);         // Save 'cause the following .setUuid() need saved user in DB
 
-        UberUserProfile uberUserProfile = uberService.aboutMe(user).get();
+        UberUserProfile uberUserProfile = uberApiService.aboutMe(user).get();
         String uuid = uberUserProfile.getUuid();
 
         myCredential.setUuid(uuid);
@@ -74,7 +75,6 @@ public class UberAuthService {
         return tokenResponse;
 
     }
-
 
     private MultiValueMap getParamsToObtainAccessToken(String code) {
         MultiValueMap<String, String> request = new LinkedMultiValueMap();

@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.Payload;
 import pack.entity.User;
 import pack.init.AppProperties;
-import pack.model.HistoryItem;
+import pack.model.HistoryResponse.History;
 import pack.service.MessageService;
-import pack.service.UberService;
+import pack.service.api.UberApiService;
 import pack.service.UserService;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class UberHandler {
     Sender sender;
 
     @Autowired
-    UberService uberService;
+    UberApiService uberApiService;
 
     @Autowired
     UserService userService;
@@ -40,8 +40,8 @@ public class UberHandler {
 
     @Postback(value = Payload.SHOW_TRIPS)
     public void showTrips(User user) {
-        List<HistoryItem> list = uberService.getHistoryList(user);
-        List<TemplateElement> templateElements = messageService.getTemplateElements(list);
+        List<History> list = uberApiService.getHistoryList(user);
+        List<TemplateElement> templateElements = messageService.getHistoryTemplateElements(list);
 
         Request request = GenericTemplate.builder()
                 .elements(templateElements)

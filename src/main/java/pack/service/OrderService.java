@@ -4,14 +4,16 @@ import com.botscrew.messengercdk.model.incomming.Coordinates;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.dao.OrderRepository;
-import pack.dao.OrderUberInfoRepository;
+import pack.dao.UberTripRepository;
 import pack.entity.Order;
-import pack.entity.OrderUberInfo;
+import pack.entity.UberTrip;
 import pack.entity.User;
-import pack.model.EstimateRequest;
-import pack.model.EstimateResponse;
+import pack.factory.CoordinatesFactory;
+import pack.model.FareRequest;
+import pack.model.FareResponse;
 import pack.model.ProductItem;
-import pack.model.TripResponse;
+import pack.service.api.GeocodingService;
+import pack.service.api.UberApiService;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,21 +31,21 @@ public class OrderService {
     UserService userService;
 
     @Autowired
-    UberService uberService;
+    UberApiService uberApiService;
 
     @Autowired
     UberOrderService uberOrderService;
 
     @Autowired
-    OrderUberInfoRepository orderUberInfoRepository;
+    UberTripRepository uberTripRepository;
 
     @Autowired
     MessageService messageService;
 
-    public Optional<Coordinates> handleAddress(String address) {
-        return geocodingService.getCoordinatesFromAddress(address);
-    }
+    @Autowired
+    private UberTripService uberTripService;
 
+    // Set start point. If Order is new, create it
     public void setStartPoint(User user, Coordinates coord) {
         Optional<Order> foundOrder = getOrderOptionalByChatId(user.getChatId());
         Order result = foundOrder.orElseGet(() -> new Order(user));
@@ -52,7 +54,6 @@ public class OrderService {
         orderRepository.save(result);
     }
 
-
     public void setEndPoint(User user, Coordinates coord) {
         Order order = orderRepository.findByUserChatId(user.getChatId());
         order.setEndLat(coord.getLatitude());
@@ -60,36 +61,43 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public Optional<EstimateResponse> getEstimateFare(User user) {
+    public Optional<FareResponse> getEstimateFare(User user) {
         Order order = orderRepository.findByUserChatId(user.getChatId());
-
-        EstimateRequest request = new EstimateRequest();
-        Coordinates coord = new Coordinates();          // Coords to get products nearby
-        coord.setLatitude(order.getStartLat());
-        coord.setLongitude(order.getStartLong());
+        // Coords to get products nearby
+        Coordinates coord = CoordinatesFactory.create(order.getStartLat(), order.getStartLong());
 
         // It's okay, because on START_INPUT we checked whether products are present
         List<ProductItem> productsNearBy = uberOrderService.getProductsNearBy(user, coord);
-        ProductItem productItem = productsNearBy.get(0);
+        // Sort products and obtain the cheapiest one
+        Optional<ProductItem> cheapProduct = productsNearBy.stream().min((p1, p2) -> {
+            int price1 = Integer.valueOf(p1.getPrice_details().getMinimum());
+            int price2 = Integer.valueOf(p2.getPrice_details().getMinimum());
+            return price1 - price2;
+        });
+        ProductItem product = cheapProduct.get();
 
-        request.setStart_latitude(order.getStartLat());
-        request.setStart_longitude(order.getStartLong());
-        request.setEnd_latitude(order.getEndLat());
-        request.setEnd_longitude(order.getEndLong());
-        request.setProduct_id(productItem.getProduct_id());
+        // JSON body of request
+        FareRequest jsonBody = new FareRequest(product.getProduct_id(), order.getStartLat(),
+                order.getStartLong(), order.getEndLat(), order.getEndLong());
+        // Make request and get response
+        Optional<FareResponse> estimateResponse = uberApiService.getEstimateResponse(user, jsonBody);
 
-        Optional<EstimateResponse> estimateResponse = uberService.getEstimateResponse(user, request);
-        estimateResponse.ifPresent(e -> saveFareAndProductId(order, e.getFare().getFare_id(), productItem.getProduct_id()));
+        // If success, save fareId and productId
+        estimateResponse.ifPresent(e -> {
+            UberTrip uberTrip = uberTripService.getByOrder(order);
+            uberTrip.setFare_id(e.getFare().getFare_id());
+            uberTrip.setProduct_id(product.getProduct_id());
+            uberTripService.save(uberTrip);
+        });
         return estimateResponse;
-//        return messageService.getEstimateRide(estimateResponse);
     }
-
 
     public Order getOrderByChatId(long chatId) {
         return orderRepository.findByUserChatId(chatId);
     }
 
-    public Optional<Order> getOrderOptionalByChatId(long chatId) {     // Return optional
+    // Return Optional<Order> by chatId
+    public Optional<Order> getOrderOptionalByChatId(long chatId) {
         Optional<Order> optional = Optional.empty();
         Order foundOrder = orderRepository.findByUserChatId(chatId);
         if (foundOrder != null) {
@@ -98,44 +106,25 @@ public class OrderService {
         return optional;
     }
 
-    public void saveFareAndProductId(Order order, String fareId, String productId) {
-        OrderUberInfo orderUberInfo = new OrderUberInfo(order, fareId, productId);
-        orderUberInfoRepository.save(orderUberInfo);
-    }
-
     public Coordinates getStartPointCoordinates(User user) {
         Order order = getOrderByChatId(user.getChatId());
-        Coordinates coord = new Coordinates();
-        coord.setLatitude(order.getStartLat());
-        coord.setLongitude(order.getStartLong());
-        return coord;
+        return CoordinatesFactory.create(order.getStartLat(), order.getStartLong());
     }
 
     public Coordinates getEndPointCoordinates(User user) {
         Order order = getOrderByChatId(user.getChatId());
-        Coordinates coord = new Coordinates();
-        coord.setLatitude(order.getEndLat());
-        coord.setLongitude(order.getEndLong());
-        return coord;
+        return CoordinatesFactory.create(order.getEndLat(), order.getEndLong());
     }
 
     public void removeByUser(User user) {
         Order order = getOrderByChatId(user.getChatId());
-        OrderUberInfo orderUberInfo = orderUberInfoRepository.findByOrderUserChatId(user.getChatId());
-        orderUberInfoRepository.delete(orderUberInfo);
+        UberTrip uberTrip = uberTripRepository.findByOrderUserChatId(user.getChatId());
+        uberTripRepository.delete(uberTrip);
         orderRepository.delete(order);
     }
 
     // TODO
     public void stopTrip(User user) {
         removeByUser(user);
-    }
-
-    public boolean confirmRide(User user) {
-        TripResponse tripResponse = uberService.getNewTripResponse(user).get();
-        OrderUberInfo orderUberInfo = orderUberInfoRepository.findByOrderUserChatId(user.getChatId());
-        orderUberInfo.setRequest_id(tripResponse.getRequest_id());
-        orderUberInfoRepository.save(orderUberInfo);
-        return true;
     }
 }

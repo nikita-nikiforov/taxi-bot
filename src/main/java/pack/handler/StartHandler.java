@@ -3,7 +3,6 @@ package pack.handler;
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
 import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.botframework.annotation.Text;
-import com.botscrew.messengercdk.model.MessengerUser;
 import com.botscrew.messengercdk.model.outgoing.builder.ButtonTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
 import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
@@ -16,9 +15,6 @@ import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
 import pack.init.AppProperties;
-import pack.service.MessageService;
-import pack.service.UberAuthService;
-import pack.service.UberService;
 import pack.service.UserService;
 
 @ChatEventsProcessor
@@ -28,15 +24,6 @@ public class StartHandler {
     private UserService userService;
 
     @Autowired
-    private UberService uberService;
-
-    @Autowired
-    private UberAuthService uberAuthService;
-
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
     private AppProperties appProperties;
 
     @Autowired
@@ -44,15 +31,17 @@ public class StartHandler {
 
     @Text(states = State.INITIAL)
     @Postback(value = Payload.GET_STARTED, states = State.INITIAL)
-    public void handleGetStarted(MessengerUser user) {
+    public void handleGetStarted(User user) {
         userService.save(user.getChatId(), user.getState());
+
+        String login_url = appProperties.getLOGIN_LINK() + "&state=" + user.getChatId();
 
         Request request = ButtonTemplate.builder()
                 .user(user)
                 .text(MessageText.GET_STARTED_INITIAL)
                 .addButton(new WebButton.Builder()
                         .title("Log in")
-                        .url(appProperties.getLOGIN_LINK() + "&state=" + user.getChatId())
+                        .url(login_url)
                         .makeTallWebView()
                         .build())
                 .addButton(new WebButton("Log out", appProperties.getLOGOUT_LINK()))
@@ -60,6 +49,7 @@ public class StartHandler {
         sender.send(request);
     }
 
+    // unused
     public void failedToLogin(User user) {
         Request request = TextMessage.builder()
                 .user(user)

@@ -2,7 +2,6 @@ package pack.model;
 
 public class UberUserProfile {
     private String picture;
-
     private String first_name;
     private String last_name;
     private String promo_code;

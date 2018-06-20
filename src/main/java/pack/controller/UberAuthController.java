@@ -10,7 +10,7 @@ import pack.handler.StartHandler;
 import pack.model.StatusChangedResponse;
 import pack.service.UberAuthService;
 import pack.service.UberOrderService;
-import pack.service.UberService;
+import pack.service.api.UberApiService;
 import pack.service.UserService;
 
 @Controller
@@ -20,7 +20,7 @@ public class UberAuthController {
     Sender sender;
 
     @Autowired
-    UberService uberService;
+    UberApiService uberApiService;
 
     @Autowired
     UberAuthService uberAuthService;
@@ -59,7 +59,7 @@ public class UberAuthController {
     public String getUberResponse(@RequestBody StatusChangedResponse response) {
         switch (response.getEvent_type()) {
             case "requests.status_changed":
-                uberOrderService.proceedStatusChanged(response);
+                uberOrderService.proceedStatusChangedWebhook(response);
         }
         return "success";
     }
