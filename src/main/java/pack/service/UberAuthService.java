@@ -13,6 +13,7 @@ import pack.entity.User;
 import pack.init.AppProperties;
 import pack.init.Initialization;
 import pack.model.UberAccessTokenResponse;
+import pack.model.UberUserProfile;
 
 @Service
 public class UberAuthService {
@@ -22,6 +23,9 @@ public class UberAuthService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UberService uberService;
 
     @Autowired
     private Initialization initialization;
@@ -37,9 +41,15 @@ public class UberAuthService {
 
         // Get access_token and set it
         myCredential.setAccess_token(accessTokenResponse.getAccess_token());
-        myCredential.setUser(user);                             // Set user to credential
+        myCredential.setUser(user);                       // Set user to credential
+        uberCredentialService.save(myCredential);         // Save 'cause the following .setUuid() need saved user in DB
 
-        return uberCredentialService.save(myCredential);               // Save in DB
+        UberUserProfile uberUserProfile = uberService.aboutMe(user).get();
+        String uuid = uberUserProfile.getUuid();
+
+        myCredential.setUuid(uuid);
+
+        return uberCredentialService.save(myCredential);               // Save
     }
 
     public UberAccessTokenResponse getAccessTokenResponse(String code) {

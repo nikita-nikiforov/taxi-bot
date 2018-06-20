@@ -17,6 +17,7 @@ import pack.constant.MessageText;
 import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
+import pack.model.EstimateResponse;
 import pack.model.ProductItem;
 import pack.service.*;
 
@@ -47,13 +48,16 @@ public class OrderHandler {
     @Autowired
     private StartHandler startHandler;
 
+    @Autowired
+    private MessageService messageService;
+
     @Postback(value = Payload.MAKE_ORDER, states = State.LOGGED)
     public void handleMakeOrder(User user) {
         userService.save(user.getChatId(), State.START_INPUT);
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.START_INPUT)
-                .postback("My places", "SELECT_FROM_PLACES")
+//                .postback("My places", "SELECT_FROM_PLACES")
                 .location()
                 .build();
         sender.send(request);
@@ -123,6 +127,7 @@ public class OrderHandler {
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.PLACE_NOT_FOUND)
+                    .location()
                     .build();
         }
         sender.send(request);
@@ -178,15 +183,24 @@ public class OrderHandler {
     @Location(states = {State.END_INPUT})
     public void handleEndLocation(User user, @Location Coordinates coord) {
         orderService.setEndPoint(user, coord);
-        String estimateFare = orderService.getEstimateFare(user);
-        userService.save(user, State.FARE_CONFIRMATION);
-        Request request = QuickReplies.builder()
-                .user(user)
-                .text(estimateFare)
-                .postback("Confirm", Payload.CONFIRM_RIDE)
-                .postback("Discard", Payload.DISCARD_RIDE)
-                .build();
+        Optional<EstimateResponse> estimateFare = orderService.getEstimateFare(user);
+        Request request;
 
+        if (estimateFare.isPresent()) {
+            userService.save(user, State.FARE_CONFIRMATION);
+            request = QuickReplies.builder()
+                    .user(user)
+                    .text(messageService.getEstimateRide(estimateFare.get()))
+                    .postback("Confirm", Payload.CONFIRM_RIDE)
+                    .postback("Discard", Payload.DISCARD_RIDE)
+                    .build();
+        } else {
+            request = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.END_ERROR)
+                    .location()
+                    .build();
+        }
         sender.send(request);
     }
 
@@ -194,16 +208,16 @@ public class OrderHandler {
     public void handleDiscardRide(User user) {
         orderService.removeByUser(user);
         userService.save(user, State.LOGGED);
-        startHandler.handleInitialText(user);
+        startHandler.handleAuthorizedState(user);
     }
 
     @Postback(value = Payload.CONFIRM_RIDE)
     public void handleConfirmRide(User user) {
         if (orderService.confirmRide(user)) {
-            userService.save(user, State.TRIP_PROCESSING);
+            userService.save(user, State.FARE_CONFIRMED);
             Request request = TextMessage.builder()
                     .user(user)
-                    .text(MessageText.TRIP_PROCESSING)
+                    .text(MessageText.FARE_CONFIRMED)
                     .build();
             sender.send(request);
         } else {

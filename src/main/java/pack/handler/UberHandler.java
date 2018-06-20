@@ -35,6 +35,9 @@ public class UberHandler {
     @Autowired
     MessageService messageService;
 
+    @Autowired
+    StartHandler startHandler;
+
     @Postback(value = Payload.SHOW_TRIPS)
     public void showTrips(User user) {
         List<HistoryItem> list = uberService.getHistoryList(user);
@@ -46,5 +49,7 @@ public class UberHandler {
                 .build();
 
         sender.send(request);
+
+        startHandler.handleAuthorizedState(user);
     }
 }

@@ -11,6 +11,8 @@ public class UberCredential {
 
     private String access_token;
 
+    private String uuid;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -45,5 +47,13 @@ public class UberCredential {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 }

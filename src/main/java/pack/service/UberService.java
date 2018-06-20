@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pack.dao.OrderUberInfoRepository;
@@ -18,10 +19,7 @@ import pack.entity.User;
 import pack.init.Initialization;
 import pack.model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class UberService {
@@ -51,6 +49,10 @@ public class UberService {
 
     public JSONObject infoAboutMe(User user) {
         return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
+    }
+
+    public Optional<UberUserProfile> aboutMe(User user) {
+        return getRequest(user, "https://api.uber.com/v1.2/me", UberUserProfile.class);
     }
 
     public List<HistoryItem> getHistoryList(User user) {
@@ -98,11 +100,11 @@ public class UberService {
         return retrieveJson(user, url, method, new HashMap<>());
     }
 
-    public EstimateResponse getEstimateResponse(User user, EstimateRequest estimateRequest) {
+    public Optional<EstimateResponse> getEstimateResponse(User user, EstimateRequest estimateRequest) {
 
         String url = "https://sandbox-api.uber.com/v1.2/requests/estimate";
 
-        return postWithJsonRequest(user, url, estimateRequest, EstimateResponse.class);
+        return postWithJsonRequestOptional(user, url, estimateRequest, EstimateResponse.class);
     }
 
     public <T> T postWithJsonRequest(User user, String url, Object request, Class<T> clazz) {
@@ -112,24 +114,63 @@ public class UberService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + access_token);
         headers.set("Accept-Language", "en_US");
-        headers.set("Content-Type", "application/json ");
+        headers.set("Content-Type", "application/json");
 
         String requestJson = gson.toJson(request);
         HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
-        T response = restTemplate.postForObject(url, entity, clazz);
+
+        T response;
+        try {
+            response = restTemplate.postForObject(url, entity, clazz);
+        } catch (HttpClientErrorException e) {
+            response = null;
+        }
+
         return response;
     }
 
-    public TripResponse getNewTripResponse(User user) {
+    public <T> Optional<T> getRequest(User user, String url, Class<T> clazz) {
+        Optional<T> result;       // to be returned
+
+        RestTemplate restTemplate = new RestTemplate();
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, entity, clazz);
+            result = Optional.of(response.getBody());
+        } catch (HttpClientErrorException e) {
+            result = Optional.empty();
+        }
+        return result;
+    }
+
+    public <T> Optional<T> postWithJsonRequestOptional(User user, String url, Object request, Class<T> clazz) {
+        Optional<T> result;
+        T t = postWithJsonRequest(user, url, request, clazz);
+        if (t != null) {
+            result = Optional.of(t);
+        } else {
+            result = Optional.empty();
+        }
+        return result;
+    }
+
+    public Optional<TripResponse> getNewTripResponse(User user) {
 
         OrderUberInfo uberInfo = orderUberInfoRepository.findByOrderUserChatId(user.getChatId());
         Order order = orderService.getOrderByChatId(user.getChatId());
         MakeTripRequest jsonBody = new MakeTripRequest(order, uberInfo);
 
-        TripResponse tripResponse = postWithJsonRequest(user, "https://sandbox-api.uber.com/v1.2/requests", jsonBody, TripResponse.class);
+        Optional<TripResponse> tripResponse = postWithJsonRequestOptional(user, "https://sandbox-api.uber.com/v1.2/requests", jsonBody, TripResponse.class);
         // TODO Handle errors
         return tripResponse;
     }
+
 
 //    public TripResponse getTripResponse() {
 //

@@ -40,4 +40,8 @@ public class UserService implements UserProvider {
     public void save(User user, String state) {
         save(user.getChatId(), state);
     }
+
+    public User getByUuid(String uuid) {
+        return userRepository.findByCredentialUuid(uuid);
+    }
 }

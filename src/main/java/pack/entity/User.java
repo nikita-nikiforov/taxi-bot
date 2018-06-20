@@ -2,10 +2,7 @@ package pack.entity;
 
 import com.botscrew.messengercdk.model.MessengerUser;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class User implements MessengerUser {
@@ -14,6 +11,9 @@ public class User implements MessengerUser {
     private int id;
     private Long chatId;
     private String state;
+
+    @OneToOne(mappedBy = "user")
+    private UberCredential credential;
 
     public User() {
     }

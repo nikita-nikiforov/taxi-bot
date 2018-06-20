@@ -60,7 +60,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public String getEstimateFare(User user) {
+    public Optional<EstimateResponse> getEstimateFare(User user) {
         Order order = orderRepository.findByUserChatId(user.getChatId());
 
         EstimateRequest request = new EstimateRequest();
@@ -78,9 +78,10 @@ public class OrderService {
         request.setEnd_longitude(order.getEndLong());
         request.setProduct_id(productItem.getProduct_id());
 
-        EstimateResponse estimateResponse = uberService.getEstimateResponse(user, request);
-        saveFareAndProductId(order, estimateResponse.getFare().getFare_id(), productItem.getProduct_id());
-        return messageService.getEstimateRide(estimateResponse);
+        Optional<EstimateResponse> estimateResponse = uberService.getEstimateResponse(user, request);
+        estimateResponse.ifPresent(e -> saveFareAndProductId(order, e.getFare().getFare_id(), productItem.getProduct_id()));
+        return estimateResponse;
+//        return messageService.getEstimateRide(estimateResponse);
     }
 
 
@@ -120,6 +121,8 @@ public class OrderService {
 
     public void removeByUser(User user) {
         Order order = getOrderByChatId(user.getChatId());
+        OrderUberInfo orderUberInfo = orderUberInfoRepository.findByOrderUserChatId(user.getChatId());
+        orderUberInfoRepository.delete(orderUberInfo);
         orderRepository.delete(order);
     }
 
@@ -129,7 +132,7 @@ public class OrderService {
     }
 
     public boolean confirmRide(User user) {
-        TripResponse tripResponse = uberService.getNewTripResponse(user);
+        TripResponse tripResponse = uberService.getNewTripResponse(user).get();
         OrderUberInfo orderUberInfo = orderUberInfoRepository.findByOrderUserChatId(user.getChatId());
         orderUberInfo.setRequest_id(tripResponse.getRequest_id());
         orderUberInfoRepository.save(orderUberInfo);

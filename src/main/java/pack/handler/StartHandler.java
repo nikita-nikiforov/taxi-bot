@@ -6,6 +6,7 @@ import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.MessengerUser;
 import com.botscrew.messengercdk.model.outgoing.builder.ButtonTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
+import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.element.button.WebButton;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
@@ -41,6 +42,7 @@ public class StartHandler {
     @Autowired
     private Sender sender;
 
+    @Text(states = State.INITIAL)
     @Postback(value = Payload.GET_STARTED, states = State.INITIAL)
     public void handleGetStarted(MessengerUser user) {
         userService.save(user.getChatId(), user.getState());
@@ -58,12 +60,10 @@ public class StartHandler {
         sender.send(request);
     }
 
-    @Text(states = {State.INITIAL})
-    public void handleInitialText(User user) {
-        Request request = QuickReplies.builder()
+    public void failedToLogin(User user) {
+        Request request = TextMessage.builder()
                 .user(user)
-                .text(MessageText.INITIAL)
-                .postback("Log in", Payload.UBER_AUTH)  // TODO
+                .text(MessageText.LOGIN_FAILED)
                 .build();
         sender.send(request);
     }

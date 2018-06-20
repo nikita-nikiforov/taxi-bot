@@ -3,13 +3,13 @@ package pack.controller;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import pack.constant.State;
 import pack.entity.User;
 import pack.handler.StartHandler;
+import pack.model.StatusChangedResponse;
 import pack.service.UberAuthService;
+import pack.service.UberOrderService;
 import pack.service.UberService;
 import pack.service.UserService;
 
@@ -31,6 +31,9 @@ public class UberAuthController {
     @Autowired
     StartHandler startHandler;
 
+    @Autowired
+    UberOrderService uberOrderService;
+
     @ResponseBody
     @GetMapping("uber-link")
     public String getUberCode(@RequestParam("code") String code, @RequestParam("state") long chatId) {
@@ -46,9 +49,18 @@ public class UberAuthController {
 
         } else {
             result = "Failed to authorize";
-            startHandler.handleInitialText(user);
+            startHandler.handleGetStarted(user);
         }
         return result;
     }
 
+    @ResponseBody
+    @RequestMapping(value = "uber-webhook")
+    public String getUberResponse(@RequestBody StatusChangedResponse response) {
+        switch (response.getEvent_type()) {
+            case "requests.status_changed":
+                uberOrderService.proceedStatusChanged(response);
+        }
+        return "success";
+    }
 }

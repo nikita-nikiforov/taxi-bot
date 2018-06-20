@@ -86,6 +86,38 @@ public class TripResponse {
         private int eta;
         private double longitude;
 
+        public double getLatitude() {
+            return latitude;
+        }
+
+        public void setLatitude(double latitude) {
+            this.latitude = latitude;
+        }
+
+        public Region getRegion() {
+            return region;
+        }
+
+        public void setRegion(Region region) {
+            this.region = region;
+        }
+
+        public int getEta() {
+            return eta;
+        }
+
+        public void setEta(int eta) {
+            this.eta = eta;
+        }
+
+        public double getLongitude() {
+            return longitude;
+        }
+
+        public void setLongitude(double longitude) {
+            this.longitude = longitude;
+        }
+
         public static class Region {
             private double latitude;
             private String country_name;
