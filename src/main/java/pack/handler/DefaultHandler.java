@@ -32,7 +32,7 @@ public class DefaultHandler {
                 orderService.stopTrip(user);
                 sender.send(user, "Your trip has been stopped.");
                 userService.save(user, "LOGGED");
-                startHandler.handleAuthorizedState(user);
+                startHandler.handleLoggedState(user);
                 break;
             default: sender.send(user, "Can't understand you.");
         }

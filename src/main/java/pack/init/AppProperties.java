@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AppProperties {
-
     @Value("${ngrok-url}")
     private String BASE_URL;
 

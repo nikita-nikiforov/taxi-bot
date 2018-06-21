@@ -45,7 +45,7 @@ public class UberAuthController {
         if (success) {
             result = "Successfully authorized. Please, return to the chat.";
             userService.save(user, State.LOGGED);
-            startHandler.handleAuthorizedState(user);
+            startHandler.handleLoggedState(user);
 
         } else {
             result = "Failed to authorize";

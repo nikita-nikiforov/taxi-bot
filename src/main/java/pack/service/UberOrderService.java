@@ -15,7 +15,6 @@ import pack.model.ProductItem;
 import pack.model.StatusChangedResponse;
 import pack.model.UberTripResponse;
 import pack.service.api.UberApiService;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +44,7 @@ public class UberOrderService {
     @Autowired
     private UberTripRepository uberTripRepository;
 
-    // To determine whether there's a taxi
+    // To determine if there's a taxi
     public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
         Map<String, String> params = new HashMap<>();
         params.put("latitude", coord.getLatitude().toString());

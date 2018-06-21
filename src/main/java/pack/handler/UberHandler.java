@@ -47,9 +47,7 @@ public class UberHandler {
                 .elements(templateElements)
                 .user(user)
                 .build();
-
         sender.send(request);
-
-        startHandler.handleAuthorizedState(user);
+        startHandler.handleLoggedState(user);
     }
 }
