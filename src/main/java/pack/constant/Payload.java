@@ -11,4 +11,7 @@ public class Payload {
     public static final String SHOW_TRIPS = "SHOW_TRIPS";
     public static final String CONFIRM_RIDE = "CONFIRM_RIDE";
     public static final String DISCARD_RIDE = "DISCARD_RIDE";
+    public static final String CANCEL_TRIP = "CANCEL_TRIP";
+    public static final String DRIVER_INFO = "DRIVER_INFO";
+    public static final String TRIP_RATE = "TRIP_RATE";
 }

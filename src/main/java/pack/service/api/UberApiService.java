@@ -116,6 +116,12 @@ public class UberApiService {
         return tripResponse;
     }
 
+    public UberTripResponse getCurrentTrip(User user) {
+        String url = "https://sandbox-api.uber.com/v1.2/requests/current";
+        Optional<UberTripResponse> response = restTemplateService.getRequestUberAuthed(user, url, UberTripResponse.class);
+        return response.get();
+    }
+
     public void updateSandboxRide(User user, String newStatus) {
         // Create request body for json
         SandboxPutRequest reqBody = new SandboxPutRequest(newStatus);

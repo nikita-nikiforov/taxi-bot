@@ -3,8 +3,10 @@ package pack.service;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pack.entity.User;
 import pack.model.FareResponse;
 import pack.model.HistoryResponse.History;
+import pack.model.UberTripResponse.Driver;
 import pack.service.api.MapboxService;
 
 import java.time.Instant;
@@ -18,6 +20,9 @@ public class MessageService {
 
     @Autowired
     private MapboxService mapboxService;
+
+    @Autowired
+    private UberOrderService uberOrderService;
 
     public List<TemplateElement> getHistoryTemplateElements(List<History> historyList) {
         List<TemplateElement> result = new ArrayList<>();
@@ -60,5 +65,17 @@ public class MessageService {
                 .append(" ").append(fareResponse.getTrip().getDistance_unit()).append("\n");
         answer.append("Price: ").append(fareResponse.getFare().getDisplay());
         return answer.toString();
+    }
+
+    public TemplateElement getDriverInfo(User user) {
+        Driver driver = uberOrderService.getDriverObject(user);
+        String subtitle = "Rating: " + driver.getRating()
+                + "\nPhone number: " + driver.getPhone_number();
+        TemplateElement templateElement = TemplateElement.builder()
+                .title(driver.getName())
+                .subtitle(subtitle)
+                .imageUrl(driver.getPicture_url())
+                .build();
+        return templateElement;
     }
 }

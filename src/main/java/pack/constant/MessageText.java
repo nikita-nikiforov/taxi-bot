@@ -26,4 +26,10 @@ public class MessageText {
     public static final String FAV_PLACE_INPUT_NAME = "Enter the name of this place.";
     public static final String FAV_PLACE_ADDED = "The place was saved!";
 
+    public static final String UBER_PROCESSING = "Your request is processing now. Wait for driver " +
+            "acceptance.";
+    public static final String UBER_ACCEPTED = "Your request have been accepted by Uber driver!";
+    public static final String UBER_ARRIVING = "The car is arriving. Be on place.";
+    public static final String UBER_IN_PROGRESS = "Your ride is in progress.";
+    public static final String UBER_COMPLETED = "Your ride have been completed! Rate it, please:";
 }

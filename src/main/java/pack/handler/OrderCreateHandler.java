@@ -155,6 +155,7 @@ public class OrderCreateHandler {
             userService.save(user, State.END_TEXT_ASKED);        // Update user's state
 
             request = GenericTemplate.builder()
+                    .user(user)
                     .addElement(TemplateElement.builder()
                             .title(MessageText.TEXT_ASKED_TITLE)
                             .subtitle(MessageText.END_TEXT_ASKED_SUBTITLE)
