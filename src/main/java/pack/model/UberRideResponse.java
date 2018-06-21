@@ -1,6 +1,6 @@
 package pack.model;
 
-public class UberTripResponse {
+public class UberRideResponse {
     private String status;
     private String product_id;
     private Destination destination;

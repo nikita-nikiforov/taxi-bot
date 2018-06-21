@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.constant.RideStatus;
 import pack.dao.OrderRepository;
-import pack.dao.UberTripRepository;
+import pack.dao.UberRideRepository;
 import pack.entity.Order;
-import pack.entity.UberTrip;
+import pack.entity.UberRide;
 import pack.entity.User;
 import pack.factory.CoordinatesFactory;
 import pack.model.FareRequest;
@@ -35,16 +35,13 @@ public class OrderService {
     UberApiService uberApiService;
 
     @Autowired
-    UberOrderService uberOrderService;
-
-    @Autowired
-    UberTripRepository uberTripRepository;
+    UberRideRepository uberRideRepository;
 
     @Autowired
     MessageService messageService;
 
     @Autowired
-    private UberTripService uberTripService;
+    private UberRideService uberRideService;
 
     // Set start point. If Order is new, create it
     public void setStartPoint(User user, Coordinates coord) {
@@ -68,7 +65,7 @@ public class OrderService {
         Coordinates coord = CoordinatesFactory.create(order.getStartLat(), order.getStartLong());
 
         // It's okay, because on START_INPUT we checked whether products are present
-        List<ProductItem> productsNearBy = uberOrderService.getProductsNearBy(user, coord);
+        List<ProductItem> productsNearBy = uberRideService.getProductsNearBy(user, coord);
         // Sort products and obtain the cheapiest one
         Optional<ProductItem> cheapProduct = productsNearBy.stream().min((p1, p2) -> {
             int price1 = Integer.valueOf(p1.getPrice_details().getMinimum());
@@ -83,12 +80,12 @@ public class OrderService {
         // Make request and get response
         Optional<FareResponse> estimateResponse = uberApiService.getEstimateResponse(user, jsonBody);
 
-        // If success, create new UberTrip and save fareId and productId
+        // If success, create new UberRide and save fareId and productId
         estimateResponse.ifPresent(e -> {
-            UberTrip uberTrip = uberTripService.getByOrder(order).orElseGet(
-                    () -> new UberTrip(order, e.getFare().getFare_id(),
+            UberRide uberRide = uberRideService.getByOrder(order).orElseGet(
+                    () -> new UberRide(order, e.getFare().getFare_id(),
                             product.getProduct_id(), RideStatus.UNDEFINED));
-            uberTripService.save(uberTrip);
+            uberRideService.save(uberRide);
         });
         return estimateResponse;
     }
@@ -119,8 +116,8 @@ public class OrderService {
 
     public void removeByUser(User user) {
         Order order = getOrderByChatId(user.getChatId());
-        UberTrip uberTrip = uberTripRepository.findByOrderUserChatId(user.getChatId());
-        uberTripRepository.delete(uberTrip);
+        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
+        uberRideRepository.delete(uberRide);
         orderRepository.delete(order);
     }
 

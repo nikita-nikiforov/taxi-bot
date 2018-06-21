@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import pack.entity.User;
 import pack.model.FareResponse;
 import pack.model.HistoryResponse.History;
-import pack.model.UberTripResponse.Driver;
+import pack.model.UberRideResponse.Driver;
 import pack.service.api.MapboxService;
 
 import java.time.Instant;
@@ -22,7 +22,7 @@ public class MessageService {
     private MapboxService mapboxService;
 
     @Autowired
-    private UberOrderService uberOrderService;
+    private UberRideService uberRideService;
 
     public List<TemplateElement> getHistoryTemplateElements(List<History> historyList) {
         List<TemplateElement> result = new ArrayList<>();
@@ -68,7 +68,7 @@ public class MessageService {
     }
 
     public TemplateElement getDriverInfo(User user) {
-        Driver driver = uberOrderService.getDriverObject(user);
+        Driver driver = uberRideService.getDriverObject(user);
         String subtitle = "Rating: " + driver.getRating()
                 + "\nPhone number: " + driver.getPhone_number();
         TemplateElement templateElement = TemplateElement.builder()

@@ -14,7 +14,7 @@ import java.util.Optional;
 public class UserService implements UserProvider {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Override
     public MessengerUser getByChatIdAndPageId(Long chatId, Long pageId) {

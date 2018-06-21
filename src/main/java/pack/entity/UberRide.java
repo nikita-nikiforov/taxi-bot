@@ -3,7 +3,7 @@ package pack.entity;
 import javax.persistence.*;
 
 @Entity
-public class UberTrip {
+public class UberRide {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -18,10 +18,10 @@ public class UberTrip {
     private String request_id;
     private String status;
 
-    public UberTrip() {
+    public UberRide() {
     }
 
-    public UberTrip(Order order, String fare_id, String product_id, String status) {
+    public UberRide(Order order, String fare_id, String product_id, String status) {
         this.order = order;
         this.fare_id = fare_id;
         this.product_id = product_id;

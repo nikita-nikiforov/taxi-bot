@@ -13,7 +13,7 @@ import pack.entity.User;
 import pack.service.MessageService;
 
 @ChatEventsProcessor
-public class UberTripHandler {
+public class UberRideHandler {
 
     @Autowired
     private Sender sender;

@@ -5,17 +5,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AppProperties {
-    @Value("${ngrok-url}")
+    @Value("${ngrok.url}")
     private String BASE_URL;
 
-    @Value("${uber-login-link}")
-    private String LOGIN_LINK;
+    @Value("${uber.login-url}")
+    private String LOGIN_URL;
 
-    @Value("${uber-logout-link}")
-    private String LOGOUT_LINK;
+    @Value("${uber.login-redirect-url}")
+    private String LOGIN_REDIRECT_URL;
 
-    @Value("${my-uber-access-key}")
-    private String MY_ACCESS_KEY;
+    @Value("${uber.logout-url}")
+    private String LOGOUT_URL;
 
     @Value("${uber.client-secret}")
     private String CLIENT_SECRET;
@@ -29,20 +29,20 @@ public class AppProperties {
     @Value("${map-icon-url}")
     private String MAP_ICON_URL;
 
-    public String getLOGIN_LINK() {
-        return LOGIN_LINK;
+    public String getLOGIN_URL() {
+        return LOGIN_URL;
     }
 
-    public String getLOGOUT_LINK() {
-        return LOGOUT_LINK;
+    public String getLOGIN_REDIRECT_URL() {
+        return LOGIN_REDIRECT_URL;
+    }
+
+    public String getLOGOUT_URL() {
+        return LOGOUT_URL;
     }
 
     public String getBASE_URL() {
         return BASE_URL;
-    }
-
-    public String getMY_ACCESS_KEY() {
-        return MY_ACCESS_KEY;
     }
 
     public String getCLIENT_SECRET() {

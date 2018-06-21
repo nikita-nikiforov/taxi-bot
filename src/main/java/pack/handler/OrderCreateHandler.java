@@ -7,7 +7,6 @@ import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
-import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
@@ -21,7 +20,7 @@ import pack.model.FareResponse;
 import pack.model.ProductItem;
 import pack.service.MessageService;
 import pack.service.OrderService;
-import pack.service.UberOrderService;
+import pack.service.UberRideService;
 import pack.service.UserService;
 import pack.service.api.GeocodingService;
 import pack.service.api.MapboxService;
@@ -43,7 +42,7 @@ public class OrderCreateHandler {
     private UberApiService uberApiService;
 
     @Autowired
-    private UberOrderService uberOrderService;
+    private UberRideService uberRideService;
 
     @Autowired
     private OrderService orderService;
@@ -124,7 +123,7 @@ public class OrderCreateHandler {
     public void handleStartInputLocation(User user, @Location Coordinates coord) {
         Request request;
         // Check if any product is available in this location
-        List<ProductItem> productsNearBy = uberOrderService.getProductsNearBy(user, coord);
+        List<ProductItem> productsNearBy = uberRideService.getProductsNearBy(user, coord);
         if (!productsNearBy.isEmpty()) {
             orderService.setStartPoint(user, coord);            // save start point
             userService.save(user, State.END_INPUT);            // user -> END_INPUT
@@ -146,7 +145,7 @@ public class OrderCreateHandler {
 
     @Text(states = {State.END_INPUT, State.END_TEXT_ASKED})
     public void handleEndInput(User user, @Text String text) {
-        Request request;                // ti be returned
+        Request request;                // to be returned
         // Get Coordinates
         Optional<Coordinates> endPoint = geocodingService.getCoordinatesFromAddress(text);
         if (endPoint.isPresent()) {
@@ -224,13 +223,8 @@ public class OrderCreateHandler {
 
     @Postback(value = Payload.CONFIRM_RIDE)
     public void handleConfirmRide(User user) {
-        if (uberOrderService.confirmRide(user)) {
+        if (uberRideService.confirmRide(user)) {
             userService.save(user, State.FARE_CONFIRMED);
-            Request request = TextMessage.builder()
-                    .user(user)
-                    .text(MessageText.FARE_CONFIRMED)
-                    .build();
-            sender.send(request);
         } else {
             sender.send(user, "Errooor");
         }

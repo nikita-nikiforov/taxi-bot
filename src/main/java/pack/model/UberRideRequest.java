@@ -1,9 +1,9 @@
 package pack.model;
 
 import pack.entity.Order;
-import pack.entity.UberTrip;
+import pack.entity.UberRide;
 
-public class UberTripRequest {
+public class UberRideRequest {
     private String fare_id;
     private String product_id;
     private double start_latitude;
@@ -11,10 +11,10 @@ public class UberTripRequest {
     private double end_latitude;
     private double end_longitude;
 
-    public UberTripRequest() {
+    public UberRideRequest() {
     }
 
-    public UberTripRequest(Order order, UberTrip uberInfo) {
+    public UberRideRequest(Order order, UberRide uberInfo) {
         this.fare_id = uberInfo.getFare_id();
         this.product_id = uberInfo.getProduct_id();
         this.start_latitude = order.getStartLat();

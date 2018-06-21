@@ -33,7 +33,7 @@ public class StartHandler {
     @Postback(value = Payload.GET_STARTED, states = State.INITIAL)
     public void handleGetStarted(User user) {
         userService.save(user.getChatId(), user.getState());
-        String login_url = appProperties.getLOGIN_LINK() + "&state=" + user.getChatId();
+        String login_url = appProperties.getLOGIN_URL() + "&state=" + user.getChatId();
         Request request = ButtonTemplate.builder()
                 .user(user)
                 .text(MessageText.GET_STARTED_INITIAL)
@@ -42,7 +42,7 @@ public class StartHandler {
                         .url(login_url)
                         .makeTallWebView()
                         .build())
-                .addButton(new WebButton("Log out", appProperties.getLOGOUT_LINK()))
+                .addButton(new WebButton("Log out", appProperties.getLOGOUT_URL()))
                 .build();
         sender.send(request);
     }

@@ -10,7 +10,7 @@ import pack.entity.User;
 public class UberCredentialService {
 
     @Autowired
-    UberCredentialRepository uberCredentialRepository;
+    private UberCredentialRepository uberCredentialRepository;
 
     public UberCredential getCredentialByChatId(long chatId) {
         return uberCredentialRepository.findByUserChatId(chatId);

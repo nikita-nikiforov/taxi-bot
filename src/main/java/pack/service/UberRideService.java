@@ -3,29 +3,22 @@ package pack.service;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
-import com.google.gson.Gson;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import pack.constant.RideStatus;
-import pack.constant.RideStatusEnum;
-import pack.dao.UberTripRepository;
-import pack.entity.UberTrip;
-import pack.entity.User;
-import pack.model.ProductItem;
-import pack.model.StatusChangedResponse;
-import pack.model.UberTripResponse;
-import pack.model.UberTripResponse.Driver;
+import pack.constant.*;
+import pack.dao.UberRideRepository;
+import pack.entity.*;
+import pack.model.*;
 import pack.service.api.UberApiService;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class UberOrderService {
+public class UberRideService {
+
+    @Autowired
+    private UberRideRepository uberRideRepository;
 
     @Autowired
     private UberApiService uberApiService;
@@ -34,50 +27,33 @@ public class UberOrderService {
     private UserService userService;
 
     @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private UberTripService uberTripService;
-
-    @Autowired
-    private Gson gson;
-
-    @Autowired
     private Sender sender;
-
-    @Autowired
-    private UberTripRepository uberTripRepository;
 
     @Resource(name = "nextRideStatusMap")
     private Map<String, String> nextRideStatusMap;
 
+    public UberRide getUberRideByUserChatId(long chatId) {
+        return uberRideRepository.findByOrderUserChatId(chatId);
+    }
+
+    public void save(UberRide uberRide) {
+        uberRideRepository.save(uberRide);
+    }
+
+    public Optional<UberRide> getByOrder(Order order) {
+        return uberRideRepository.findByOrder(order);
+    }
+
     // To determine if there's a taxi
     public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
-
-        Map<String, String> params = new HashMap<>();
-        params.put("latitude", coord.getLatitude().toString());
-        params.put("longitude", coord.getLongitude().toString());
-
-        // TODO
-        JSONObject productsJson = uberApiService.retrieveJson(user, "https://api.uber.com/v1.2/products",
-                HttpMethod.GET, params);
-        JSONArray array = (JSONArray) productsJson.get("products");
-        List<ProductItem> productItems = new ArrayList<>();
-
-        // TODO here catch exception
-        array.forEach(e -> {
-            JSONObject productJson = (JSONObject) e;
-            ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
-            productItems.add(productItem);
-        });
-        return productItems;
+        return uberApiService.getProductsNearBy(user, coord);
     }
 
     public boolean confirmRide(User user) {
-        UberTripResponse uberTripResponse = uberApiService.getUberNewTripResponse(user).get();
-        UberTrip uberTrip = uberTripRepository.findByOrderUserChatId(user.getChatId());
-        uberTrip.setRequest_id(uberTripResponse.getRequest_id());
-        uberTripRepository.save(uberTrip);
+        UberRideResponse uberRideResponse = uberApiService.getUberNewTripResponse(user).get();
+        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
+        uberRide.setRequest_id(uberRideResponse.getRequest_id());
+        uberRideRepository.save(uberRide);
         return true;
     }
 
@@ -91,21 +67,20 @@ public class UberOrderService {
 
         String requestId = response.getMeta().getResource_id();
 
-        UberTrip uberTrip = uberTripService.getUberTripByUserChatId(user.getChatId());
+        UberRide uberRide = getUberRideByUserChatId(user.getChatId());
 
-        if (requestId.equals(uberTrip.getRequest_id())
+        if (requestId.equals(uberRide.getRequest_id())
                 && ifRideStatusAppropriate(user, updatedStatus)) {
-            uberTrip.setStatus(rideStatusEnum.getName());
-            uberTripService.save(uberTrip);
+            uberRide.setStatus(rideStatusEnum.getName());
+            save(uberRide);
             userService.save(user, rideStatusEnum.getUserState());
-//            sender.send(user, "request_id = " + response.getMeta().getResource_id());
             Request request = rideStatusEnum.getRequest(user);
             sender.send(request);
             fakeTripLogic(user, updatedStatus);
         }
     }
 
-    public void fakeTripLogic(User user, String currentStatus) {
+    private void fakeTripLogic(User user, String currentStatus) {
         try {
             TimeUnit.SECONDS.sleep(new SplittableRandom().nextInt(30, 50));
 
@@ -127,7 +102,7 @@ public class UberOrderService {
                 default:
                     newStatus = RideStatus.UNDEFINED;
             }
-            uberApiService.updateSandboxRide(user, newStatus);
+            uberApiService.putSandboxRide(user, newStatus);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -136,15 +111,15 @@ public class UberOrderService {
     // TODO
     // Check if the new status received on webhook is appropriate to be the next
     private boolean ifRideStatusAppropriate(User user, String newStatus) {
-        UberTrip uberTrip = uberTripService.getUberTripByUserChatId(user.getChatId());
-        String currentStatus = uberTrip.getStatus();
+        UberRide uberRide = getUberRideByUserChatId(user.getChatId());
+        String currentStatus = uberRide.getStatus();
         if (nextRideStatusMap.get(currentStatus).equals(newStatus)) {
             return true;
         } else return false;
     }
 
-    public Driver getDriverObject(User user) {
-        UberTripResponse currentTrip = uberApiService.getCurrentTrip(user);
+    public UberRideResponse.Driver getDriverObject(User user) {
+        UberRideResponse currentTrip = uberApiService.getCurrentTrip(user);
         return currentTrip.getDriver();
     }
 }

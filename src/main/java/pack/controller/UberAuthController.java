@@ -9,13 +9,12 @@ import pack.entity.User;
 import pack.handler.StartHandler;
 import pack.model.StatusChangedResponse;
 import pack.service.UberAuthService;
-import pack.service.UberOrderService;
-import pack.service.api.UberApiService;
+import pack.service.UberRideService;
 import pack.service.UserService;
+import pack.service.api.UberApiService;
 
 @Controller
 public class UberAuthController {
-
     @Autowired
     Sender sender;
 
@@ -32,10 +31,10 @@ public class UberAuthController {
     StartHandler startHandler;
 
     @Autowired
-    UberOrderService uberOrderService;
+    private UberRideService uberRideService;
 
     @ResponseBody
-    @GetMapping("uber-link")
+    @GetMapping("uber-auth")
     public String getUberCode(@RequestParam("code") String code, @RequestParam("state") long chatId) {
         User user = userService.getUserByChatId(chatId);        // Get user from DB
 
@@ -52,5 +51,13 @@ public class UberAuthController {
             startHandler.handleGetStarted(user);
         }
         return result;
+    }
+
+    @RequestMapping(value = "uber-webhook")
+    public void getUberResponse(@RequestBody StatusChangedResponse response) {
+        switch (response.getEvent_type()) {
+            case "requests.status_changed":
+                uberRideService.proceedStatusChangedWebhook(response);
+        }
     }
 }

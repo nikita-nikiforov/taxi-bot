@@ -1,6 +1,8 @@
 package pack.service.api;
 
+import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.google.gson.Gson;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -10,15 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import pack.dao.UberTripRepository;
+import pack.dao.UberRideRepository;
 import pack.entity.Order;
-import pack.entity.UberTrip;
+import pack.entity.UberRide;
 import pack.entity.User;
 import pack.model.*;
 import pack.model.HistoryResponse.History;
 import pack.service.OrderService;
 import pack.service.UberCredentialService;
-import pack.service.UberTripService;
+import pack.service.UberRideService;
 import pack.service.UserService;
 
 import java.util.*;
@@ -33,19 +35,22 @@ public class UberApiService {
     private RestTemplateService restTemplateService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    UberCredentialService uberCredentialService;
+    private UberCredentialService uberCredentialService;
 
     @Autowired
-    OrderService orderService;
+    private OrderService orderService;
 
     @Autowired
-    private UberTripRepository uberTripRepository;      // TODO to service
+    private UberRideRepository uberRideRepository;      // TODO to service
 
     @Autowired
-    private UberTripService uberTripService;
+    private UberRideService uberRideService;
+
+    @Autowired
+    private UberRestService uberRestService;
 
     // TODO
     public JSONObject makeOrder(User user) {
@@ -57,12 +62,12 @@ public class UberApiService {
     }
 
     public Optional<UberUserProfile> aboutMe(User user) {
-        return restTemplateService.getRequestUberAuthed(user, "https://api.uber.com/v1.2/me", UberUserProfile.class);
+        return uberRestService.getRequest(user, "https://api.uber.com/v1.2/me", UberUserProfile.class);
     }
 
     public List<History> getHistoryList(User user) {
         List<History> result = new ArrayList<>();
-        Optional<HistoryResponse> response = restTemplateService.getRequestUberAuthed(user, "https://api.uber.com/v1.2/history", HistoryResponse.class);
+        Optional<HistoryResponse> response = uberRestService.getRequest(user, "https://api.uber.com/v1.2/history", HistoryResponse.class);
         response.ifPresent(r -> result.addAll(Arrays.asList(r.getHistory())));
         return result;
     }
@@ -100,34 +105,63 @@ public class UberApiService {
 
     public Optional<FareResponse> getEstimateResponse(User user, FareRequest fareRequest) {
         String url = "https://sandbox-api.uber.com/v1.2/requests/estimate";
-        return restTemplateService.postRequestUberAuthedOptional(user, url, fareRequest, FareResponse.class);
+        return uberRestService.postRequestOptional(user, url, fareRequest, FareResponse.class);
     }
 
-    public Optional<UberTripResponse> getUberNewTripResponse(User user) {
+    public Optional<UberRideResponse> getUberNewTripResponse(User user) {
 
-        UberTrip uberTrip = uberTripRepository.findByOrderUserChatId(user.getChatId());
+        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
         Order order = orderService.getOrderByChatId(user.getChatId());
-        UberTripRequest jsonBody = new UberTripRequest(order, uberTrip);
+        UberRideRequest jsonBody = new UberRideRequest(order, uberRide);
         String url = "https://sandbox-api.uber.com/v1.2/requests";
 
-        Optional<UberTripResponse> tripResponse = restTemplateService
-                .postRequestUberAuthedOptional(user, url, jsonBody, UberTripResponse.class);
+        Optional<UberRideResponse> tripResponse = uberRestService
+                .postRequestOptional(user, url, jsonBody, UberRideResponse.class);
         // TODO Handle errors
         return tripResponse;
     }
 
-    public UberTripResponse getCurrentTrip(User user) {
+    public UberRideResponse getCurrentTrip(User user) {
         String url = "https://sandbox-api.uber.com/v1.2/requests/current";
-        Optional<UberTripResponse> response = restTemplateService.getRequestUberAuthed(user, url, UberTripResponse.class);
+        Optional<UberRideResponse> response = uberRestService.getRequest(user, url, UberRideResponse.class);
         return response.get();
     }
 
-    public void updateSandboxRide(User user, String newStatus) {
+    // To update the ride state, it's for the fake logic
+    public void putSandboxRide(User user, String newStatus) {
         // Create request body for json
         SandboxPutRequest reqBody = new SandboxPutRequest(newStatus);
         // Get requestId by User
-        String requestId = uberTripService.getUberTripByUserChatId(user.getChatId()).getRequest_id();
+        String requestId = uberRideService.getUberRideByUserChatId(user.getChatId()).getRequest_id();
         String url = "https://sandbox-api.uber.com/v1.2/sandbox/requests/" + requestId;
-        restTemplateService.putRequestUberAuthed(user, url, reqBody, Object.class);
+        uberRestService.putRequest(user, url, reqBody, Object.class);
+    }
+
+    // To determine if there's Uber service by coordinates TODO
+    public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
+        Map<String, String> params = new HashMap<>();
+        params.put("latitude", coord.getLatitude().toString());
+        params.put("longitude", coord.getLongitude().toString());
+
+        // TODO
+        JSONObject productsJson = retrieveJson(user, "https://api.uber.com/v1.2/products",
+                HttpMethod.GET, params);
+        JSONArray array = (JSONArray) productsJson.get("products");
+        List<ProductItem> productItems = new ArrayList<>();
+
+        // TODO here catch exception
+        array.forEach(e -> {
+            JSONObject productJson = (JSONObject) e;
+            ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
+            productItems.add(productItem);
+        });
+        return productItems;
+    }
+
+    // To DELETE the ride by request_id
+    public void deleteRideRequest(User user) {
+        UberRide uberRide = uberRideService.getUberRideByUserChatId(user.getChatId());
+        String request_id = uberRide.getRequest_id();
+        uberRestService.deleteRequest(user, request_id);
     }
 }

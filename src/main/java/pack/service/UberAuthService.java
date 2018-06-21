@@ -11,7 +11,6 @@ import org.springframework.web.client.RestTemplate;
 import pack.entity.UberCredential;
 import pack.entity.User;
 import pack.init.AppProperties;
-import pack.init.Initialization;
 import pack.model.UberAccessTokenResponse;
 import pack.model.UberUserProfile;
 import pack.service.api.UberApiService;
@@ -29,9 +28,6 @@ public class UberAuthService {
     private UberApiService uberApiService;
 
     @Autowired
-    private Initialization initialization;
-
-    @Autowired
     private AppProperties appProperties;
 
     // TODO
@@ -40,6 +36,7 @@ public class UberAuthService {
         User user = userService.getUserByChatId(chatId);        // Get user by ChatId
         UberAccessTokenResponse accessTokenResponse = getAccessTokenResponse(code); // Get access_token
 
+        // Here handle exception TODO
         // Get access_token and set it
         myCredential.setAccess_token(accessTokenResponse.getAccess_token());
         myCredential.setUser(user);                       // Set user to credential
@@ -81,9 +78,10 @@ public class UberAuthService {
         request.add("client_secret", appProperties.getCLIENT_SECRET());
         request.add("client_id", appProperties.getCLIENT_ID());
         request.add("grant_type", "authorization_code");
-        request.add("redirect_uri", appProperties.getBASE_URL() + "uber-link");
+        request.add("redirect_uri", appProperties.getLOGIN_REDIRECT_URL());
         request.add("code", code);
         return request;
     }
+
 
 }

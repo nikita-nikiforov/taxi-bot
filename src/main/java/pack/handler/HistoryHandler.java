@@ -18,25 +18,25 @@ import pack.service.UserService;
 import java.util.List;
 
 @ChatEventsProcessor
-public class UberHandler {
+public class HistoryHandler {
 
     @Autowired
-    AppProperties appProperties;
+    private AppProperties appProperties;
 
     @Autowired
-    Sender sender;
+    private Sender sender;
 
     @Autowired
-    UberApiService uberApiService;
+    private UberApiService uberApiService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    MessageService messageService;
+    private MessageService messageService;
 
     @Autowired
-    StartHandler startHandler;
+    private StartHandler startHandler;
 
     @Postback(value = Payload.SHOW_TRIPS)
     public void showTrips(User user) {
