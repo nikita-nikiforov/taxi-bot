@@ -6,6 +6,8 @@ import pack.dao.UberTripRepository;
 import pack.entity.Order;
 import pack.entity.UberTrip;
 
+import java.util.Optional;
+
 @Service
 public class UberTripService {
 
@@ -20,7 +22,7 @@ public class UberTripService {
         uberTripRepository.save(uberTrip);
     }
 
-    public UberTrip getByOrder(Order order) {
+    public Optional<UberTrip> getByOrder(Order order) {
         return uberTripRepository.findByOrder(order);
     }
 

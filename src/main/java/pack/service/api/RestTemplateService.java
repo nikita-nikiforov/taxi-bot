@@ -26,17 +26,7 @@ public class RestTemplateService {
     @Autowired
     private Gson gson;
 
-    public <T> Optional<T> getRequestUberAuthed(User user, String url, Class<T> clazz) {
-        // Get user access token
-        String access_token = uberCredentialService.getAccessTokenByUser(user);
-        HttpHeaders headers = new HttpHeaders();                    // Set headers
-        headers.set("Authorization", "Bearer " + access_token);
-        headers.set("Content-Type", "application/json");
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        return getRequest(user, url, clazz, entity);
-    }
-
-    public <T> Optional<T> getRequest(User user, String url, Class<T> clazz, HttpEntity<?> entity) {
+    public <T> Optional<T> getRequest(String url, HttpEntity<?> entity, Class<T> clazz) {
         Optional<T> result;                                     // to be returned
         RestTemplate restTemplate = new RestTemplate();
         try {
@@ -48,18 +38,7 @@ public class RestTemplateService {
         return result;
     }
 
-    public <T> T postRequestUberAuthed(User user, String url, Object request, Class<T> clazz) {
-        String access_token = uberCredentialService.getAccessTokenByUser(user);
-        HttpHeaders headers = new HttpHeaders();                        // Set headers
-        headers.set("Authorization", "Bearer " + access_token);
-        headers.set("Accept-Language", "en_US");
-        headers.set("Content-Type", "application/json");
-        String requestJson = gson.toJson(request);
-        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
-        return postRequest(user, url, entity, clazz);
-        }
-
-    public <T> T postRequest(User user, String url, HttpEntity<?> entity, Class<T> clazz) {
+    public <T> T postRequest(String url, HttpEntity<?> entity, Class<T> clazz) {
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -69,9 +48,52 @@ public class RestTemplateService {
         }
     }
 
-    public <T> Optional<T> postRequestUberAuthedOptional(User user, String url, Object request, Class<T> clazz) {
+    public <T> Optional<T> putRequest(String url, HttpEntity<?> entity, Class<T> clazz) {
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.PUT, entity, clazz);
+        if (response.getBody() != null) {
+            return Optional.of(response.getBody());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public <T> Optional<T> getRequestUberAuthed(User user, String url, Class<T> clazz) {
+        // Get user access token
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+        HttpHeaders headers = new HttpHeaders();                    // Set headers
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Content-Type", "application/json");
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        return getRequest(url, entity, clazz);
+    }
+
+    public <T> T postRequestUberAuthed(User user, String url, Object request, Class<T> clazz) {
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+        HttpHeaders headers = new HttpHeaders();                        // Set headers
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Accept-Language", "en_US");
+        headers.set("Content-Type", "application/json");
+        String requestJson = gson.toJson(request);
+        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+        return postRequest(url, entity, clazz);
+        }
+
+    public <T> Optional<T> postRequestUberAuthedOptional(User user, String url,
+                                                         Object request, Class<T> clazz) {
         T t = postRequestUberAuthed(user, url, request, clazz);
         if (t != null) return Optional.of(t);
         else return Optional.empty();
+    }
+
+    public <T> Optional<T> putRequestUberAuthed(User user, String url, Object reqBody, Class<T> clazz) {
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+        HttpHeaders headers = new HttpHeaders();                        // Set headers
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Accept-Language", "en_US");
+        headers.set("Content-Type", "application/json");
+        String json = gson.toJson(reqBody);
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
+        return putRequest(url, entity, clazz);
     }
 }

@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import pack.constant.RideStatus;
 import pack.dao.UberTripRepository;
 import pack.entity.UberTrip;
 import pack.entity.User;
@@ -15,10 +16,10 @@ import pack.model.ProductItem;
 import pack.model.StatusChangedResponse;
 import pack.model.UberTripResponse;
 import pack.service.api.UberApiService;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UberOrderService {
@@ -44,8 +45,12 @@ public class UberOrderService {
     @Autowired
     private UberTripRepository uberTripRepository;
 
+    @Resource(name = "nextRideStatusMap")
+    private Map<String, String> nextRideStatusMap;
+
     // To determine if there's a taxi
     public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
+
         Map<String, String> params = new HashMap<>();
         params.put("latitude", coord.getLatitude().toString());
         params.put("longitude", coord.getLongitude().toString());
@@ -84,12 +89,51 @@ public class UberOrderService {
         UberTrip uberTrip = uberTripService.getUberTripByUserChatId(user.getChatId());
 
         if (requestId.equals(uberTrip.getRequest_id())
-                && !updatedStatus.equals(uberTrip.getStatus())) {
+//                && !updatedStatus.equals(uberTrip.getStatus())
+                && ifRideStatusIsNext(user, updatedStatus)) {
             uberTrip.setStatus(updatedStatus);
             uberTripService.save(uberTrip);
             userService.save(user, getUserStateByRideStatus(updatedStatus));
             sender.send(user, "Ride status changed: " + updatedStatus + ", request_id = " + response.getMeta().getResource_id());
+            fakeTripLogic(user, updatedStatus);
         }
+    }
+
+    public void fakeTripLogic(User user, String currentStatus) {
+        try {
+            TimeUnit.SECONDS.sleep(15);
+
+            String newStatus;
+            // update the ride status to the next step
+            switch (currentStatus) {
+                case RideStatus.PROCESSING:
+                    newStatus = RideStatus.ACCEPTED;
+                    break;
+                case RideStatus.ACCEPTED:
+                    newStatus = RideStatus.ARRIVING;
+                    break;
+                case RideStatus.ARRIVING:
+                    newStatus = RideStatus.IN_PROGRESS;
+                    break;
+                case RideStatus.IN_PROGRESS:
+                    newStatus = RideStatus.COMPLETED;
+                    break;
+                default:
+                    newStatus = RideStatus.UNDEFINED;
+            }
+            uberApiService.updateSandboxRide(user, newStatus);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Check if the new status received on webhook is an appropriate next status
+    private boolean ifRideStatusIsNext(User user, String newStatus) {
+        UberTrip uberTrip = uberTripService.getUberTripByUserChatId(user.getChatId());
+        String currentStatus = uberTrip.getStatus();
+        if (nextRideStatusMap.get(currentStatus).equals(newStatus)) {
+            return true;
+        } else return false;
     }
 
     // Transform uber trip status to user state. E.g. "arrival" -> "UBER_ARRIVAL"

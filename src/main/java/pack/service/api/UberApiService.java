@@ -18,6 +18,7 @@ import pack.model.*;
 import pack.model.HistoryResponse.History;
 import pack.service.OrderService;
 import pack.service.UberCredentialService;
+import pack.service.UberTripService;
 import pack.service.UserService;
 
 import java.util.*;
@@ -41,7 +42,10 @@ public class UberApiService {
     OrderService orderService;
 
     @Autowired
-    private UberTripRepository uberTripRepository;
+    private UberTripRepository uberTripRepository;      // TODO to service
+
+    @Autowired
+    private UberTripService uberTripService;
 
     // TODO
     public JSONObject makeOrder(User user) {
@@ -99,7 +103,6 @@ public class UberApiService {
         return restTemplateService.postRequestUberAuthedOptional(user, url, fareRequest, FareResponse.class);
     }
 
-
     public Optional<UberTripResponse> getUberNewTripResponse(User user) {
 
         UberTrip uberTrip = uberTripRepository.findByOrderUserChatId(user.getChatId());
@@ -111,5 +114,14 @@ public class UberApiService {
                 .postRequestUberAuthedOptional(user, url, jsonBody, UberTripResponse.class);
         // TODO Handle errors
         return tripResponse;
+    }
+
+    public void updateSandboxRide(User user, String newStatus) {
+        // Create request body for json
+        SandboxPutRequest reqBody = new SandboxPutRequest(newStatus);
+        // Get requestId by User
+        String requestId = uberTripService.getUberTripByUserChatId(user.getChatId()).getRequest_id();
+        String url = "https://sandbox-api.uber.com/v1.2/sandbox/requests/" + requestId;
+        restTemplateService.putRequestUberAuthed(user, url, reqBody, Object.class);
     }
 }

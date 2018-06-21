@@ -53,14 +53,4 @@ public class UberAuthController {
         }
         return result;
     }
-
-    @ResponseBody
-    @RequestMapping(value = "uber-webhook")
-    public String getUberResponse(@RequestBody StatusChangedResponse response) {
-        switch (response.getEvent_type()) {
-            case "requests.status_changed":
-                uberOrderService.proceedStatusChangedWebhook(response);
-        }
-        return "success";
-    }
 }

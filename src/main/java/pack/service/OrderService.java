@@ -3,6 +3,7 @@ package pack.service;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pack.constant.RideStatus;
 import pack.dao.OrderRepository;
 import pack.dao.UberTripRepository;
 import pack.entity.Order;
@@ -82,11 +83,11 @@ public class OrderService {
         // Make request and get response
         Optional<FareResponse> estimateResponse = uberApiService.getEstimateResponse(user, jsonBody);
 
-        // If success, save fareId and productId
+        // If success, create new UberTrip and save fareId and productId
         estimateResponse.ifPresent(e -> {
-            UberTrip uberTrip = uberTripService.getByOrder(order);
-            uberTrip.setFare_id(e.getFare().getFare_id());
-            uberTrip.setProduct_id(product.getProduct_id());
+            UberTrip uberTrip = uberTripService.getByOrder(order).orElseGet(
+                    () -> new UberTrip(order, e.getFare().getFare_id(),
+                            product.getProduct_id(), RideStatus.UNDEFINED));
             uberTripService.save(uberTrip);
         });
         return estimateResponse;
