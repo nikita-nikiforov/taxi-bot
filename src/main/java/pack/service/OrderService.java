@@ -116,7 +116,7 @@ public class OrderService {
 
     public void removeByUser(User user) {
         Order order = getOrderByChatId(user.getChatId());
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
+        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
         uberRideRepository.delete(uberRide);
         orderRepository.delete(order);
     }

@@ -32,7 +32,7 @@ public class UberRideService {
     @Resource(name = "nextRideStatusMap")
     private Map<String, String> nextRideStatusMap;
 
-    public UberRide getUberRideByUserChatId(long chatId) {
+    public Optional<UberRide> getUberRideByUserChatId(long chatId) {
         return uberRideRepository.findByOrderUserChatId(chatId);
     }
 
@@ -51,7 +51,7 @@ public class UberRideService {
 
     public boolean confirmRide(User user) {
         UberRideResponse uberRideResponse = uberApiService.getUberNewTripResponse(user).get();
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
+        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
         uberRide.setRequest_id(uberRideResponse.getRequest_id());
         uberRideRepository.save(uberRide);
         return true;
@@ -67,23 +67,25 @@ public class UberRideService {
 
         String requestId = response.getMeta().getResource_id();
 
-        UberRide uberRide = getUberRideByUserChatId(user.getChatId());
+        Optional<UberRide> uberRide = getUberRideByUserChatId(user.getChatId());
 
-        if (requestId.equals(uberRide.getRequest_id())
-                && ifRideStatusAppropriate(user, updatedStatus)) {
-            uberRide.setStatus(rideStatusEnum.getName());
-            save(uberRide);
-            userService.save(user, rideStatusEnum.getUserState());
-            Request request = rideStatusEnum.getRequest(user);
-            sender.send(request);
-            fakeTripLogic(user, updatedStatus);
-        }
+        uberRide.ifPresent(r -> {
+            if (requestId.equals(r.getRequest_id())
+                    && ifRideStatusAppropriate(user, updatedStatus)) {
+                r.setStatus(rideStatusEnum.getName());
+                save(r);
+                userService.save(user, rideStatusEnum.getUserState());
+                Request request = rideStatusEnum.getRequest(user);
+                sender.send(request);
+                fakeTripLogic(user, updatedStatus);
+            }
+        });
     }
 
+    // Implements fake logic of Uber ride in Sandbox
     private void fakeTripLogic(User user, String currentStatus) {
         try {
             TimeUnit.SECONDS.sleep(new SplittableRandom().nextInt(30, 50));
-
             String newStatus;
             // update the ride status to the next step
             switch (currentStatus) {
@@ -111,7 +113,7 @@ public class UberRideService {
     // TODO
     // Check if the new status received on webhook is appropriate to be the next
     private boolean ifRideStatusAppropriate(User user, String newStatus) {
-        UberRide uberRide = getUberRideByUserChatId(user.getChatId());
+        UberRide uberRide = getUberRideByUserChatId(user.getChatId()).get();
         String currentStatus = uberRide.getStatus();
         if (nextRideStatusMap.get(currentStatus).equals(newStatus)) {
             return true;

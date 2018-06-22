@@ -74,7 +74,7 @@ public class DefaultHandler {
         Order order = orderService.getOrderByChatId(user.getChatId());
         orderRepository.delete(order);
 
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
+        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
         uberRideRepository.delete(uberRide);
 
         UberCredential uberCredential = uberCredentialRepository.findByUserChatId(user.getChatId());

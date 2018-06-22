@@ -13,8 +13,11 @@ import pack.service.UberRideService;
 import pack.service.UserService;
 import pack.service.api.UberApiService;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 @Controller
-public class UberAuthController {
+public class UberController {
     @Autowired
     Sender sender;
 
@@ -33,11 +36,10 @@ public class UberAuthController {
     @Autowired
     private UberRideService uberRideService;
 
-    @ResponseBody
-    @GetMapping("uber-auth")
-    public String getUberCode(@RequestParam("code") String code, @RequestParam("state") long chatId) {
+    @GetMapping("/uber-auth")
+    public void getUberCode(@RequestParam("code") String code, @RequestParam("state") long chatId,
+                              HttpServletResponse response) {
         User user = userService.getUserByChatId(chatId);        // Get user from DB
-
         String result;                                          // Message to be sent
         // If User's access token have been got and saved, then true
         boolean success = uberAuthService.authorizeUser(chatId, code);
@@ -50,14 +52,24 @@ public class UberAuthController {
             result = "Failed to authorize";
             startHandler.handleGetStarted(user);
         }
-        return result;
+        try {
+            response.sendRedirect("https://www.messenger.com/closeWindow/?image_url=https://ain.ua/wp-content/uploads/2018/06/94471_600.jpg&display_text=BUE");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @RequestMapping(value = "uber-webhook")
+    @ResponseBody
+    @RequestMapping(value = "/uber-webhook")
     public void getUberResponse(@RequestBody StatusChangedResponse response) {
         switch (response.getEvent_type()) {
             case "requests.status_changed":
                 uberRideService.proceedStatusChangedWebhook(response);
         }
+    }
+
+    @GetMapping("/test")
+    public String testView() {
+        return "uber-auth";
     }
 }

@@ -7,7 +7,7 @@ import pack.entity.UberRide;
 import java.util.Optional;
 
 public interface UberRideRepository extends JpaRepository<UberRide, Integer> {
-    UberRide findByOrderUserChatId(long chatId);
+    Optional<UberRide> findByOrderUserChatId(long chatId);
 
     Optional<UberRide> findByOrder(Order order);
 
