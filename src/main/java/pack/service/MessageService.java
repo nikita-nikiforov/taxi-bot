@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import pack.entity.User;
 import pack.model.FareResponse;
 import pack.model.HistoryResponse.History;
-import pack.model.UberRideResponse.Driver;
+import pack.model.UberRideResponse.*;
 import pack.service.api.MapboxService;
 
 import java.time.Instant;
@@ -67,14 +67,32 @@ public class MessageService {
         return answer.toString();
     }
 
-    public TemplateElement getDriverInfo(User user) {
-        Driver driver = uberRideService.getDriverObject(user);
-        String subtitle = "Rating: " + driver.getRating()
-                + "\nPhone number: " + driver.getPhone_number();
+    // Get Driver object for current trip
+    public TemplateElement getDriverTemplate(User user) {
+        Driver driver = uberRideService.getDriverResponse(user);
+        String subtitle = "Rating: " + driver.getRating();
         TemplateElement templateElement = TemplateElement.builder()
                 .title(driver.getName())
                 .subtitle(subtitle)
                 .imageUrl(driver.getPicture_url())
+                .build();
+        return templateElement;
+    }
+
+    public String getDriverPhone(User user) {
+        Driver driver = uberRideService.getDriverResponse(user);
+        return driver.getPhone_number();
+    }
+
+    // Get Vehicle object for current trip
+    public TemplateElement getVehicleTemplate(User user) {
+        Vehicle vehicle = uberRideService.getVehicleResponse(user);
+        String title = vehicle.getMake() + " " + vehicle.getModel();
+        String subtitle = "License plate: " + vehicle.getLicense_plate();
+        TemplateElement templateElement = TemplateElement.builder()
+                .title(title)
+                .subtitle(subtitle)
+                .imageUrl(vehicle.getPicture_url())
                 .build();
         return templateElement;
     }

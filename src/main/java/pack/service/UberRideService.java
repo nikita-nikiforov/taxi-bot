@@ -23,6 +23,8 @@ import java.util.SplittableRandom;
 import java.util.concurrent.TimeUnit;
 
 import static pack.constant.RideStatus.*;
+import static pack.model.UberRideResponse.Driver;
+import static pack.model.UberRideResponse.Vehicle;
 
 
 @Service
@@ -46,8 +48,12 @@ public class UberRideService {
     @Resource(name = "nextRideStatusMap")
     private Map<RideStatus, RideStatus> nextRideStatusMap;
 
-    public Optional<UberRide> getUberRideByUserChatId(long chatId) {
+    public Optional<UberRide> getByUserChatId(long chatId) {
         return uberRideRepository.findByOrderUserChatId(chatId);
+    }
+
+    public Optional<UberRide> getByRequestId(String requestId) {
+        return uberRideRepository.findByRequest(requestId);
     }
 
     public void save(UberRide uberRide) {
@@ -64,38 +70,35 @@ public class UberRideService {
     }
 
     public boolean confirmRide(User user) {
-        UberRideResponse uberRideResponse = uberApiService.getUberNewTripResponse(user).get();
+        UberRideResponse uberRideResponse = uberApiService.getUberNewRideResponse(user).get();
         UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
-        uberRide.setRequest_id(uberRideResponse.getRequest_id());
+        uberRide.setRequest(uberRideResponse.getRequest_id());
         uberRideRepository.save(uberRide);
         return true;
     }
 
-    // When receive webhook with trip status changed
+    // When receive "requests.status_changed" on webhook. Using uuid from the request,
+    // the method finds UberRide in DB and checks
     public void proceedStatusChangeWebhook(StatusChangedResponse response) {
         // Get user by uuid from response
         User user = userService.getByUuid(response.getMeta().getUser_id());
-        // Get new status from response
-        String updatedStatus = response.getMeta().getStatus();
-        // And find corresponding RideStatus enum
-        RideStatus updatedRideStatus = RideStatus.findByName(updatedStatus);
-
         // Get requestId from response
         String requestId = response.getMeta().getResource_id();
 
-        // Get Optional of UberRide by user
-        Optional<UberRide> uberRideOptional = getUberRideByUserChatId(user.getChatId());
+        Optional<UberRide> uberRideOptional = getByRequestId(requestId);
 
         uberRideOptional.ifPresent(uberRide -> {
-            // Check if webhook request is for current ride and if the updated status is appropriate
-            // to the current one (I checked this because I had received too many requests from Uber)
-            if (requestId.equals(uberRide.getRequest_id())
-                    && ifRideStatusAppropriate(uberRide, updatedRideStatus)) {
+            // Get new status from response and find corresponding RideStatus enum
+            RideStatus updatedRideStatus = RideStatus.findByName(response.getMeta().getStatus());
+            // Check if the updated status is appropriate to the current one
+            // (I checked this because I had received sometimes random requests from Uber)
+            if (ifRideStatusAppropriate(uberRide, updatedRideStatus)) {
                 // Handle new status by appropriate method
                 handleStatusChange(user, uberRide, updatedRideStatus);
                 fakeTripLogic(user, updatedRideStatus);             // Call fake logic status changing
             }
         });
+
     }
 
     // Implements fake logic of Uber ride in Sandbox
@@ -144,9 +147,14 @@ public class UberRideService {
         } else return false;
     }
 
-    public UberRideResponse.Driver getDriverObject(User user) {
+    public Driver getDriverResponse(User user) {
         UberRideResponse currentTrip = uberApiService.getCurrentTrip(user);
         return currentTrip.getDriver();
+    }
+
+    public Vehicle getVehicleResponse(User user) {
+        UberRideResponse currentTrip = uberApiService.getCurrentTrip(user);
+        return currentTrip.getVehicle();
     }
 
     // Handles status changing and delegates to appropriate methods

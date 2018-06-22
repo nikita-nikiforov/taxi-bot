@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface UberRideRepository extends JpaRepository<UberRide, Integer> {
     Optional<UberRide> findByOrderUserChatId(long chatId);
 
+    Optional<UberRide> findByRequest(String requestId);
+
     Optional<UberRide> findByOrder(Order order);
 
 }

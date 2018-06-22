@@ -15,7 +15,8 @@ public class UberRide {
 
     private String fare_id;
     private String product_id;
-    private String request_id;
+    @Column(name = "request_id")
+    private String request;
     private String status;
 
     public UberRide() {
@@ -60,12 +61,12 @@ public class UberRide {
         this.product_id = product_id;
     }
 
-    public String getRequest_id() {
-        return request_id;
+    public String getRequest() {
+        return request;
     }
 
-    public void setRequest_id(String request_id) {
-        this.request_id = request_id;
+    public void setRequest(String request) {
+        this.request = request;
     }
 
     public String getStatus() {

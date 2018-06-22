@@ -5,6 +5,9 @@ import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
+import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
+import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
+import com.botscrew.messengercdk.model.outgoing.element.quickreply.PostbackQuickReply;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,9 @@ import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
 import pack.service.MessageService;
+
+import java.util.Arrays;
+
 
 @ChatEventsProcessor
 public class UberRideHandler {
@@ -38,11 +44,13 @@ public class UberRideHandler {
 
     @Text(states = State.UBER_ACCEPTED)
     public void handleUberAcceptedText(User user) {
-        Request request = QuickReplies.builder()
+        TemplateElement vehicleTemplate = messageService.getVehicleTemplate(user);
+        Request request = GenericTemplate.builder()
                 .user(user)
-                .text(MessageText.UBER_ACCEPTED)
-                .postback("Driver info", Payload.DRIVER_INFO)
+                .addElement(vehicleTemplate)
+                .quickReplies(Arrays.asList(new PostbackQuickReply("Driver info", Payload.DRIVER_INFO)))
                 .build();
+        sender.send(user, MessageText.UBER_ACCEPTED);
         sender.send(request);
     }
 
@@ -68,14 +76,9 @@ public class UberRideHandler {
 
     @Text(states = State.UBER_COMPLETED)
     public void handleUberCompletedText(User user) {
-        Request request = QuickReplies.builder()
+        Request request = TextMessage.builder()
                 .user(user)
                 .text(MessageText.UBER_COMPLETED)
-                .postback("1", Payload.TRIP_RATE + "?rate=1")
-                .postback("2", Payload.TRIP_RATE + "?rate=2")
-                .postback("3", Payload.TRIP_RATE + "?rate=3")
-                .postback("4", Payload.TRIP_RATE + "?rate=4")
-                .postback("5", Payload.TRIP_RATE + "?rate=5")
                 .build();
         sender.send(request);
     }
@@ -84,8 +87,9 @@ public class UberRideHandler {
     public void handleDriverInfo(User user) {
         Request request = GenericTemplate.builder()
                 .user(user)
-                .addElement(messageService.getDriverInfo(user))
+                .addElement(messageService.getDriverTemplate(user))
                 .build();
         sender.send(request);
+        sender.send(user, "Phone number: " + messageService.getDriverPhone(user));
     }
 }

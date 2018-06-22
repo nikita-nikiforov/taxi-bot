@@ -8,6 +8,7 @@ import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
+import com.botscrew.messengercdk.model.outgoing.element.WebAction;
 import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
@@ -73,14 +74,14 @@ public class OrderCreateHandler {
 
     @Text(states = {State.START_INPUT, State.START_TEXT_ASKED})
     public void handleStartInputText(User user, @Text String text) {
-        // Check if Google can find such address
+        // Receive coordinates by text address using Google Geocoding
         Optional<Coordinates> startPoint = geocodingService.getCoordinatesFromAddress(text);
         if (startPoint.isPresent()) {
             Coordinates coords = startPoint.get();
             orderService.setStartPoint(user, coords);            // Save order start point
             userService.save(user, State.START_TEXT_ASKED);     // Save user
-            Request request = getLocationConfirmRequest(user, MessageText.TEXT_ASKED_TITLE,
-                    MessageText.START_TEXT_ASKED_SUBTITLE, Payload.CONFIRM_START_POINT,
+            // Get answer request
+            Request request = getLocationConfirmRequest(user, Payload.CONFIRM_START_POINT,
                     Payload.DISCARD_START_POINT, coords);
             sender.send(request);
         } else {
@@ -93,16 +94,21 @@ public class OrderCreateHandler {
         }
     }
 
-    private Request getLocationConfirmRequest(User user, String title, String subtitle,
+    // Create Request asking to confirm the found place
+    private Request getLocationConfirmRequest(User user,
                     String payloadConfirm, String payloadDiscard, Coordinates coords) {
         return GenericTemplate.builder()
                 .user(user)
                 .addElement(TemplateElement.builder()
-                        .title(title)
-                        .subtitle(subtitle)
+                        .title(MessageText.TEXT_ASKED_TITLE)
+                        .subtitle(MessageText.TEXT_ASKED_SUBTITLE)
                         .imageUrl(mapboxService.getConfirmAddressMapUrl(coords))
                         .button(new PostbackButton("Yes", payloadConfirm))
                         .button(new PostbackButton("No", payloadDiscard))
+                        .defaultAction(WebAction.builder()
+                            .url(mapboxService.getMarkeredMapUrl(coords))
+                            .makeCompactWebView()
+                            .build())
                         .build())
                 .build();
     }
@@ -116,7 +122,7 @@ public class OrderCreateHandler {
     @Postback(value = Payload.DISCARD_START_POINT)
     public void handleDiscardStartPoint(User user) {
         userService.save(user, State.START_INPUT);          // Return user to START_INPUT
-        handleMakeOrder(user);
+        handleMakeOrder(user);                              // And ask of start again
     }
 
     @Location(states = {State.START_INPUT, State.START_TEXT_ASKED})
@@ -133,7 +139,7 @@ public class OrderCreateHandler {
                     .location()
                     .build();
         } else {                                    // If Uber has no products in the region
-            userService.save(user, State.LOGGED);               // user -> LOGGED
+            userService.save(user, State.START_INPUT);               // user -> LOGGED
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.UBER_NO_PRODUCTS)
@@ -145,24 +151,15 @@ public class OrderCreateHandler {
 
     @Text(states = {State.END_INPUT, State.END_TEXT_ASKED})
     public void handleEndInput(User user, @Text String text) {
-        Request request;                // to be returned
+        Request request;                                            // to be returned
         // Get Coordinates
         Optional<Coordinates> endPoint = geocodingService.getCoordinatesFromAddress(text);
         if (endPoint.isPresent()) {
-            Coordinates coord = endPoint.get();
-            orderService.setEndPoint(user, coord);                  // Set them to the order in DB
+            Coordinates coords = endPoint.get();
+            orderService.setEndPoint(user, coords);                  // Set them to the order in DB
             userService.save(user, State.END_TEXT_ASKED);        // Update user's state
-
-            request = GenericTemplate.builder()
-                    .user(user)
-                    .addElement(TemplateElement.builder()
-                            .title(MessageText.TEXT_ASKED_TITLE)
-                            .subtitle(MessageText.END_TEXT_ASKED_SUBTITLE)
-                            .imageUrl(mapboxService.getConfirmAddressMapUrl(coord))
-                            .button(new PostbackButton("Yes", Payload.CONFIRM_END_POINT))
-                            .button(new PostbackButton("No", Payload.DISCARD_END_POINT))
-                            .build())
-                    .build();
+            request = getLocationConfirmRequest(user, Payload.CONFIRM_END_POINT,
+                    Payload.DISCARD_END_POINT, coords);
         } else {
             request = QuickReplies.builder()
                     .user(user)
@@ -170,7 +167,6 @@ public class OrderCreateHandler {
                     .location()
                     .build();
         }
-
         sender.send(request);
     }
 

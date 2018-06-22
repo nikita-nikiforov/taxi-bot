@@ -42,4 +42,10 @@ public class MapboxService {
         return String.format(urlTemplate, lng, lat, appProperties.getMAPBOX_ACCESS_TOKEN(),
                 iconUrl);
     }
+
+    public String getMarkeredMapUrl(Coordinates coordinates) {
+        double lat = coordinates.getLatitude();
+        double lng = coordinates.getLongitude();
+        return appProperties.getBASE_URL() + "/map?lat=" + lat + "&lng=" + lng;
+    }
 }

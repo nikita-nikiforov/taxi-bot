@@ -108,7 +108,7 @@ public class UberApiService {
         return uberRestService.postRequestOptional(user, url, fareRequest, FareResponse.class);
     }
 
-    public Optional<UberRideResponse> getUberNewTripResponse(User user) {
+    public Optional<UberRideResponse> getUberNewRideResponse(User user) {
 
         UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
         Order order = orderService.getOrderByChatId(user.getChatId());
@@ -132,7 +132,7 @@ public class UberApiService {
         // Create request body for json
         SandboxPutRequest reqBody = new SandboxPutRequest(newStatus);
         // Get requestId by User
-        String requestId = uberRideService.getUberRideByUserChatId(user.getChatId()).get().getRequest_id();
+        String requestId = uberRideService.getByUserChatId(user.getChatId()).get().getRequest();
         String url = "https://sandbox-api.uber.com/v1.2/sandbox/requests/" + requestId;
         uberRestService.putRequest(user, url, reqBody, Object.class);
     }
@@ -160,8 +160,8 @@ public class UberApiService {
 
     // To DELETE the ride by request_id
     public void deleteRideRequest(User user) {
-        UberRide uberRide = uberRideService.getUberRideByUserChatId(user.getChatId()).get();
-        String request_id = uberRide.getRequest_id();
+        UberRide uberRide = uberRideService.getByUserChatId(user.getChatId()).get();
+        String request_id = uberRide.getRequest();
         uberRestService.deleteRequest(user, request_id);
     }
 }
