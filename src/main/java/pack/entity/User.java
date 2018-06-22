@@ -15,6 +15,9 @@ public class User implements MessengerUser {
     @OneToOne(mappedBy = "user")
     private UberCredential credential;
 
+    @OneToOne(mappedBy = "user")
+    private Order order;
+
     public User() {
     }
 
@@ -47,5 +50,21 @@ public class User implements MessengerUser {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public UberCredential getCredential() {
+        return credential;
+    }
+
+    public void setCredential(UberCredential credential) {
+        this.credential = credential;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

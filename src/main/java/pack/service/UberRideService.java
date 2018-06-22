@@ -1,18 +1,29 @@
 package pack.service;
 
 import com.botscrew.messengercdk.model.incomming.Coordinates;
-import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pack.constant.*;
+import pack.constant.RideStatus;
 import pack.dao.UberRideRepository;
-import pack.entity.*;
-import pack.model.*;
+import pack.entity.Order;
+import pack.entity.UberRide;
+import pack.entity.User;
+import pack.handler.RideStatusWebhookHandler;
+import pack.model.ProductItem;
+import pack.model.StatusChangedResponse;
+import pack.model.UberRideResponse;
 import pack.service.api.UberApiService;
+
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SplittableRandom;
 import java.util.concurrent.TimeUnit;
+
+import static pack.constant.RideStatus.*;
+
 
 @Service
 public class UberRideService {
@@ -27,10 +38,13 @@ public class UberRideService {
     private UserService userService;
 
     @Autowired
+    private RideStatusWebhookHandler rideStatusWebhookHandler;
+
+    @Autowired
     private Sender sender;
 
     @Resource(name = "nextRideStatusMap")
-    private Map<String, String> nextRideStatusMap;
+    private Map<RideStatus, RideStatus> nextRideStatusMap;
 
     public Optional<UberRide> getUberRideByUserChatId(long chatId) {
         return uberRideRepository.findByOrderUserChatId(chatId);
@@ -58,63 +72,73 @@ public class UberRideService {
     }
 
     // When receive webhook with trip status changed
-    public void proceedStatusChangedWebhook(StatusChangedResponse response) {
+    public void proceedStatusChangeWebhook(StatusChangedResponse response) {
         // Get user by uuid from response
         User user = userService.getByUuid(response.getMeta().getUser_id());
-        // Get status and requestId
+        // Get new status from response
         String updatedStatus = response.getMeta().getStatus();
-        RideStatusEnum rideStatusEnum = RideStatusEnum.findByName(updatedStatus);
+        // And find corresponding RideStatus enum
+        RideStatus updatedRideStatus = RideStatus.findByName(updatedStatus);
 
+        // Get requestId from response
         String requestId = response.getMeta().getResource_id();
 
-        Optional<UberRide> uberRide = getUberRideByUserChatId(user.getChatId());
+        // Get Optional of UberRide by user
+        Optional<UberRide> uberRideOptional = getUberRideByUserChatId(user.getChatId());
 
-        uberRide.ifPresent(r -> {
-            if (requestId.equals(r.getRequest_id())
-                    && ifRideStatusAppropriate(user, updatedStatus)) {
-                r.setStatus(rideStatusEnum.getName());
-                save(r);
-                userService.save(user, rideStatusEnum.getUserState());
-                Request request = rideStatusEnum.getRequest(user);
-                sender.send(request);
-                fakeTripLogic(user, updatedStatus);
+        uberRideOptional.ifPresent(uberRide -> {
+            // Check if webhook request is for current ride and if the updated status is appropriate
+            // to the current one (I checked this because I had received too many requests from Uber)
+            if (requestId.equals(uberRide.getRequest_id())
+                    && ifRideStatusAppropriate(uberRide, updatedRideStatus)) {
+                // Handle new status by appropriate method
+                handleStatusChange(user, uberRide, updatedRideStatus);
+                fakeTripLogic(user, updatedRideStatus);             // Call fake logic status changing
             }
         });
     }
 
     // Implements fake logic of Uber ride in Sandbox
-    private void fakeTripLogic(User user, String currentStatus) {
+    private void fakeTripLogic(User user, RideStatus currentStatus) {
         try {
-            TimeUnit.SECONDS.sleep(new SplittableRandom().nextInt(30, 50));
-            String newStatus;
-            // update the ride status to the next step
+            // Sleep for some random time
+            TimeUnit.SECONDS.sleep(new SplittableRandom().nextInt(15, 20));
+            RideStatus newStatus;
+            // update the ride status to the next one
             switch (currentStatus) {
-                case RideStatus.PROCESSING:
-                    newStatus = RideStatus.ACCEPTED;
+                case PROCESSING:
+                    newStatus = ACCEPTED;
                     break;
-                case RideStatus.ACCEPTED:
-                    newStatus = RideStatus.ARRIVING;
+                case ACCEPTED:
+                    newStatus = ARRIVING;
                     break;
-                case RideStatus.ARRIVING:
-                    newStatus = RideStatus.IN_PROGRESS;
+                case ARRIVING:
+                    newStatus = IN_PROGRESS;
                     break;
-                case RideStatus.IN_PROGRESS:
-                    newStatus = RideStatus.COMPLETED;
+                case IN_PROGRESS:
+                    newStatus = COMPLETED;
+                    break;
+                case COMPLETED:
+                    newStatus = FINISHED;
                     break;
                 default:
-                    newStatus = RideStatus.UNDEFINED;
+                    newStatus = currentStatus;
             }
-            uberApiService.putSandboxRide(user, newStatus);
+            // If not FINISHED, make putRequest to update to the next status.
+            // (Because when COMPLETED is recieved, Uber removes the trip.
+            // So, FINISHED indicates that there's nothing to update)
+            if (newStatus != FINISHED) {
+                uberApiService.putSandboxRide(user, newStatus.getName());
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    // TODO
+    // TODO check for "driver_canceled"
     // Check if the new status received on webhook is appropriate to be the next
-    private boolean ifRideStatusAppropriate(User user, String newStatus) {
-        UberRide uberRide = getUberRideByUserChatId(user.getChatId()).get();
-        String currentStatus = uberRide.getStatus();
+    private boolean ifRideStatusAppropriate(UberRide uberRide, RideStatus newStatus) {
+        RideStatus currentStatus = RideStatus.findByName(uberRide.getStatus());
         if (nextRideStatusMap.get(currentStatus).equals(newStatus)) {
             return true;
         } else return false;
@@ -123,5 +147,30 @@ public class UberRideService {
     public UberRideResponse.Driver getDriverObject(User user) {
         UberRideResponse currentTrip = uberApiService.getCurrentTrip(user);
         return currentTrip.getDriver();
+    }
+
+    // Handles status changing and delegates to appropriate methods
+    private void handleStatusChange(User user, UberRide uberRide, RideStatus rideStatus) {
+        uberRide.setStatus(rideStatus.getName());          // Set name from UberStatus enum
+        save(uberRide);                                        // Save UberRide
+        userService.save(user, rideStatus.getUserState());  // Save user with new state
+
+        switch (rideStatus) {
+            case PROCESSING:
+                rideStatusWebhookHandler.handleProcessing(user, uberRide);
+                break;
+            case ACCEPTED:
+                rideStatusWebhookHandler.handleAccepted(user, uberRide);
+                break;
+            case ARRIVING:
+                rideStatusWebhookHandler.handleArriving(user, uberRide);
+                break;
+            case IN_PROGRESS:
+                rideStatusWebhookHandler.handleInProgress(user, uberRide);
+                break;
+            case COMPLETED:
+                rideStatusWebhookHandler.handleCompleted(user, uberRide);
+                break;
+        }
     }
 }

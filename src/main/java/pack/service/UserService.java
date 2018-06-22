@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.constant.State;
 import pack.dao.UserRepository;
+import pack.entity.UberRide;
 import pack.entity.User;
 
 import java.util.Optional;
@@ -43,5 +44,9 @@ public class UserService implements UserProvider {
 
     public User getByUuid(String uuid) {
         return userRepository.findByCredentialUuid(uuid);
+    }
+
+    public User getByUberRide(UberRide uberRide) {
+        return userRepository.findByOrderUberRide(uberRide);
     }
 }

@@ -84,7 +84,7 @@ public class OrderService {
         estimateResponse.ifPresent(e -> {
             UberRide uberRide = uberRideService.getByOrder(order).orElseGet(
                     () -> new UberRide(order, e.getFare().getFare_id(),
-                            product.getProduct_id(), RideStatus.UNDEFINED));
+                            product.getProduct_id(), RideStatus.CREATED.getName()));
             uberRideService.save(uberRide);
         });
         return estimateResponse;

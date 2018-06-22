@@ -7,7 +7,7 @@ public class MessageText {
     public static final String LOGGED = "What do you want to do now?";
     public static final String FAILED_AUTH = "You failed to authorize in Uber :(\nMaybe, try again?";
     public static final String START_INPUT = "Please, attach the start location or just write the address.";
-    public static final String UBER_NO_PRODUCTS = "Uber has no service in this place.";
+    public static final String UBER_NO_PRODUCTS = "Uber has no service in this region. Another one start point?";
     public static final String TEXT_ASKED_TITLE = "Did you mean this place?";
     public static final String START_TEXT_ASKED_SUBTITLE = "Please, confirm the start point.";
     public static final String END_TEXT_ASKED_SUBTITLE = "Please, confirm the end point.";

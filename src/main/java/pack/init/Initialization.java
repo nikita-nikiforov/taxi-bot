@@ -10,11 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import pack.constant.RideStatus;
-
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static pack.constant.RideStatus.*;
 
 @Component
 public class Initialization {
@@ -39,13 +40,14 @@ public class Initialization {
 
     // Bean with appropriate next ride statuses. (In order to prevent "in_progress" -> "arriving"
     @Bean(value = "nextRideStatusMap")
-    public Map<String, String> nextRideStatusMap() {
-        Map<String, String> map = new HashMap<>();
-        map.put(RideStatus.UNDEFINED, RideStatus.PROCESSING);
-        map.put(RideStatus.PROCESSING, RideStatus.ACCEPTED);
-        map.put(RideStatus.ACCEPTED, RideStatus.ARRIVING);
-        map.put(RideStatus.ARRIVING, RideStatus.IN_PROGRESS);
-        map.put(RideStatus.IN_PROGRESS, RideStatus.COMPLETED);
+    public Map<RideStatus, RideStatus> nextRideStatusMap() {
+        Map<RideStatus, RideStatus> map = new HashMap<>();
+        map.put(CREATED, PROCESSING);
+        map.put(PROCESSING, ACCEPTED);
+        map.put(ACCEPTED, ARRIVING);
+        map.put(ARRIVING, IN_PROGRESS);
+        map.put(IN_PROGRESS, COMPLETED);
+        map.put(COMPLETED, FINISHED);
         return map;
     }
 

@@ -15,9 +15,12 @@ public class Order {
     private double endLat;
     private double endLong;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToOne(mappedBy = "order")
+    private UberRide uberRide;
 
     public Order() {
     }
@@ -64,5 +67,13 @@ public class Order {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public UberRide getUberRide() {
+        return uberRide;
+    }
+
+    public void setUberRide(UberRide uberRide) {
+        this.uberRide = uberRide;
     }
 }

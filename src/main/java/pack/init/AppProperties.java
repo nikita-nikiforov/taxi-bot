@@ -23,6 +23,9 @@ public class AppProperties {
     @Value("${uber.client-id}")
     private String CLIENT_ID;
 
+    @Value("${facebook.close-webview-url}")
+    private String CLOSE_WEBVIEW_URL;
+
     @Value("${mapbox.access-token}")
     private String MAPBOX_ACCESS_TOKEN;
 
@@ -51,6 +54,10 @@ public class AppProperties {
 
     public String getCLIENT_ID() {
         return CLIENT_ID;
+    }
+
+    public String getCLOSE_WEBVIEW_URL() {
+        return CLOSE_WEBVIEW_URL;
     }
 
     public String getMAPBOX_ACCESS_TOKEN() {
