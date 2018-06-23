@@ -5,26 +5,18 @@ import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.constant.RideStatus;
+import pack.constant.State;
 import pack.dao.UberRideRepository;
-import pack.entity.Order;
-import pack.entity.UberRide;
-import pack.entity.User;
+import pack.entity.*;
 import pack.handler.RideStatusWebhookHandler;
-import pack.model.ProductItem;
-import pack.model.StatusChangedResponse;
-import pack.model.UberRideResponse;
+import pack.model.*;
 import pack.service.api.UberApiService;
-
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.SplittableRandom;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static pack.constant.RideStatus.*;
-import static pack.model.UberRideResponse.Driver;
-import static pack.model.UberRideResponse.Vehicle;
+import static pack.model.UberRideResponse.*;
 
 
 @Service
@@ -40,13 +32,20 @@ public class UberRideService {
     private UserService userService;
 
     @Autowired
+    private OrderService orderService;
+
+    @Autowired
     private RideStatusWebhookHandler rideStatusWebhookHandler;
+
+    @Autowired
+    private UberRideService uberRideService;
 
     @Autowired
     private Sender sender;
 
     @Resource(name = "nextRideStatusMap")
     private Map<RideStatus, RideStatus> nextRideStatusMap;
+
 
     public Optional<UberRide> getByUserChatId(long chatId) {
         return uberRideRepository.findByOrderUserChatId(chatId);
@@ -69,36 +68,38 @@ public class UberRideService {
         return uberApiService.getProductsNearBy(user, coord);
     }
 
+    // Confirm the ride. Return true, if request successfully start new UberRide
     public boolean confirmRide(User user) {
-        UberRideResponse uberRideResponse = uberApiService.getUberNewRideResponse(user).get();
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
-        uberRide.setRequest(uberRideResponse.getRequest_id());
-        uberRideRepository.save(uberRide);
-        return true;
+        Optional<UberRideResponse> responseOptional = uberApiService.getUberNewRideResponse(user);
+        if (responseOptional.isPresent()) {
+            UberRideResponse uberRideResponse = responseOptional.get();
+            UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
+            uberRide.setRequest(uberRideResponse.getRequest_id());
+            uberRideRepository.save(uberRide);
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
     // When receive "requests.status_changed" on webhook. Using uuid from the request,
     // the method finds UberRide in DB and checks
     public void proceedStatusChangeWebhook(StatusChangedResponse response) {
-        // Get user by uuid from response
-        User user = userService.getByUuid(response.getMeta().getUser_id());
-        // Get requestId from response
-        String requestId = response.getMeta().getResource_id();
-
-        Optional<UberRide> uberRideOptional = getByRequestId(requestId);
-
+        User user = userService.getByUuid(response.getMeta().getUser_id());     // Get user by uuid from response
+        String requestId = response.getMeta().getResource_id();                 // Get requestId from response
+        Optional<UberRide> uberRideOptional = getByRequestId(requestId);        // Get UberRide by request_Id
         uberRideOptional.ifPresent(uberRide -> {
             // Get new status from response and find corresponding RideStatus enum
             RideStatus updatedRideStatus = RideStatus.findByName(response.getMeta().getStatus());
             // Check if the updated status is appropriate to the current one
-            // (I checked this because I had received sometimes random requests from Uber)
+            // (I checked this because sometimes I had received many random requests from Uber)
             if (ifRideStatusAppropriate(uberRide, updatedRideStatus)) {
                 // Handle new status by appropriate method
                 handleStatusChange(user, uberRide, updatedRideStatus);
                 fakeTripLogic(user, updatedRideStatus);             // Call fake logic status changing
             }
         });
-
     }
 
     // Implements fake logic of Uber ride in Sandbox
@@ -180,5 +181,27 @@ public class UberRideService {
                 rideStatusWebhookHandler.handleCompleted(user, uberRide);
                 break;
         }
+    }
+
+    public void removeByUser(User user) {
+        uberRideRepository.removeByOrderUser(user);
+    }
+
+    public void proceedReceiptWebhook(StatusChangedResponse response) {
+        User user = userService.getByUuid(response.getMeta().getUser_id());     // Get user by uuid from response
+        String requestId = response.getMeta().getResource_id();                 // Get requestId
+        Optional<UberRide> uberRide = getByRequestId(requestId);                // Get uberRide by request
+        // Check if UberRide is present and if the status of new event is "ready"
+        if (uberRide.isPresent() && "ready".equals(response.getMeta().getStatus())) {
+            Optional<ReceiptResponse> receiptResponseOptional = uberApiService.getReceiptResponse(user, response);
+            receiptResponseOptional.ifPresent(receiptResponse -> {
+                rideStatusWebhookHandler.handleReceipt(user, receiptResponse);
+            });
+
+            orderService.removeByUser(user);
+            uberRideService.removeByUser(user);
+            userService.save(user, State.LOGGED);
+        }
+        // TODO
     }
 }

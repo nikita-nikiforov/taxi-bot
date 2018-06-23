@@ -22,9 +22,8 @@ public class UberRide {
     public UberRide() {
     }
 
-    public UberRide(Order order, String fare_id, String product_id, String status) {
+    public UberRide(Order order, String product_id, String status) {
         this.order = order;
-        this.fare_id = fare_id;
         this.product_id = product_id;
         this.status = status;
     }

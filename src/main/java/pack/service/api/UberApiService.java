@@ -108,6 +108,8 @@ public class UberApiService {
         return uberRestService.postRequestOptional(user, url, fareRequest, FareResponse.class);
     }
 
+    // Make request to start new ride and get response with request_id.
+    // It uses Order coords and UberRide fare_id and product_id
     public Optional<UberRideResponse> getUberNewRideResponse(User user) {
 
         UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
@@ -150,11 +152,20 @@ public class UberApiService {
         List<ProductItem> productItems = new ArrayList<>();
 
         // TODO here catch exception
-        array.forEach(e -> {
-            JSONObject productJson = (JSONObject) e;
-            ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
-            productItems.add(productItem);
-        });
+        try {
+//            array.forEach(e -> {
+//                JSONObject productJson = (JSONObject) e;
+//                ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
+//                productItems.add(productItem);
+//            });
+            for (Object e : array) {
+                JSONObject productJson = (JSONObject) e;
+                ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
+                productItems.add(productItem);
+            }
+
+        } catch (Exception e) {
+        }
         return productItems;
     }
 
@@ -163,5 +174,10 @@ public class UberApiService {
         UberRide uberRide = uberRideService.getByUserChatId(user.getChatId()).get();
         String request_id = uberRide.getRequest();
         uberRestService.deleteRequest(user, request_id);
+    }
+
+    public Optional<ReceiptResponse> getReceiptResponse(User user, StatusChangedResponse statusChangedResponse) {
+        String url = statusChangedResponse.getResource_href();
+        return uberRestService.getRequest(user, url, ReceiptResponse.class);
     }
 }

@@ -75,17 +75,17 @@ public class OrderService {
         ProductItem product = cheapProduct.get();
 
         // JSON body of request
-        FareRequest jsonBody = new FareRequest(product.getProduct_id(), order.getStartLat(),
-                order.getStartLong(), order.getEndLat(), order.getEndLong());
+        FareRequest jsonBody = new FareRequest(order, product);
         // Make request and get response
         Optional<FareResponse> estimateResponse = uberApiService.getEstimateResponse(user, jsonBody);
 
-        // If success, create new UberRide and save fareId and productId
         estimateResponse.ifPresent(e -> {
+            // Get Order from DB or create new
             UberRide uberRide = uberRideService.getByOrder(order).orElseGet(
-                    () -> new UberRide(order, e.getFare().getFare_id(),
+                    () -> new UberRide(order,
                             product.getProduct_id(), RideStatus.CREATED.getName()));
-            uberRideService.save(uberRide);
+            uberRide.setFare_id(e.getFare().getFare_id());          // Update fare_id
+            uberRideService.save(uberRide);                         // Save UberRide
         });
         return estimateResponse;
     }
@@ -116,8 +116,8 @@ public class OrderService {
 
     public void removeByUser(User user) {
         Order order = getOrderByChatId(user.getChatId());
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
-        uberRideRepository.delete(uberRide);
+        Optional<UberRide> uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
+        uberRide.ifPresent(u -> uberRideRepository.delete(u));
         orderRepository.delete(order);
     }
 

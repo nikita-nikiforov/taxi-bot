@@ -1,5 +1,7 @@
 package pack.model;
 
+import pack.entity.Order;
+
 public class FareRequest {
     private String product_id;
     private double start_latitude;
@@ -17,6 +19,14 @@ public class FareRequest {
         this.start_longitude = start_longitude;
         this.end_latitude = end_latitude;
         this.end_longitude = end_longitude;
+    }
+
+    public FareRequest(Order order, ProductItem productItem) {
+        this.start_latitude = order.getStartLat();
+        this.start_longitude = order.getStartLong();
+        this.end_latitude = order.getEndLat();
+        this.end_longitude = order.getEndLong();
+        this.product_id = productItem.getProduct_id();
     }
 
     public String getProduct_id() {

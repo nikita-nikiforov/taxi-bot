@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import pack.entity.User;
 import pack.model.FareResponse;
 import pack.model.HistoryResponse.History;
+import pack.model.ReceiptResponse;
 import pack.model.UberRideResponse.*;
 import pack.service.api.MapboxService;
 
@@ -95,5 +96,12 @@ public class MessageService {
                 .imageUrl(vehicle.getPicture_url())
                 .build();
         return templateElement;
+    }
+
+    public String getReceiptTemplate(ReceiptResponse response) {
+        String result = "Ride receipt: \nDistance: " + response.getDistance() + " "
+                + response.getDistance_label() + " \nDuration: " + response.getDuration()
+                + " \nFare: " + response.getTotal_charged();
+        return result;
     }
 }

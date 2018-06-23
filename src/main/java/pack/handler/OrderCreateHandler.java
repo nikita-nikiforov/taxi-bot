@@ -7,6 +7,7 @@ import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
+import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import com.botscrew.messengercdk.model.outgoing.element.WebAction;
 import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
@@ -139,7 +140,7 @@ public class OrderCreateHandler {
                     .location()
                     .build();
         } else {                                    // If Uber has no products in the region
-            userService.save(user, State.START_INPUT);               // user -> LOGGED
+            userService.save(user, State.LOGGED);               // user -> LOGGED
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.UBER_NO_PRODUCTS)
@@ -163,8 +164,9 @@ public class OrderCreateHandler {
         } else {
             request = QuickReplies.builder()
                     .user(user)
-                    .text(MessageText.END_INPUT_FALSE)
+                    .text(MessageText.PLACE_NOT_FOUND)
                     .location()
+                    .postback("Cancel", Payload.DISCARD_RIDE)
                     .build();
         }
         sender.send(request);
@@ -183,7 +185,9 @@ public class OrderCreateHandler {
                 .user(user)
                 .text(MessageText.END_INPUT_RETRY)
                 .location()
+                .postback("Cancel", Payload.DISCARD_RIDE)
                 .build();
+        sender.send(request);
     }
 
     @Location(states = {State.END_INPUT, State.END_TEXT_ASKED})
@@ -191,7 +195,6 @@ public class OrderCreateHandler {
         orderService.setEndPoint(user, coord);
         Optional<FareResponse> estimateFare = orderService.getEstimateFare(user);
         Request request;
-
         if (estimateFare.isPresent()) {
             userService.save(user, State.FARE_CONFIRMATION);
             request = QuickReplies.builder()
@@ -205,6 +208,7 @@ public class OrderCreateHandler {
                     .user(user)
                     .text(MessageText.END_ERROR)
                     .location()
+                    .postback("Cancel", Payload.DISCARD_RIDE)
                     .build();
         }
         sender.send(request);
@@ -219,10 +223,36 @@ public class OrderCreateHandler {
 
     @Postback(value = Payload.CONFIRM_RIDE)
     public void handleConfirmRide(User user) {
+        // Sends request to start UberTrip to Uber. If has started, then true
         if (uberRideService.confirmRide(user)) {
             userService.save(user, State.FARE_CONFIRMED);
+            Request request = TextMessage.builder()
+                    .user(user)
+                    .text(MessageText.FARE_CONFIRMED)
+                    .build();
+            sender.send(request);
         } else {
-            sender.send(user, "Errooor");
+            // If ride failed to be started on Uber, then send a new estimate fare to user
+            Optional<FareResponse> estimateFare = orderService.getEstimateFare(user);
+            Request request = QuickReplies.builder()
+                    .user(user)
+                    .text(messageService.getTripEstimate(estimateFare.get()))
+                    .postback("Confirm", Payload.CONFIRM_RIDE)
+                    .postback("Discard", Payload.DISCARD_RIDE)
+                    .build();
+            sender.send(user, MessageText.FARE_ERROR);
+            sender.send(request);
         }
+    }
+
+    @Text(states = State.FARE_CONFIRMATION)
+    public void handleTextWhileConfirmation(User user) {
+        Request request = QuickReplies.builder()
+                .user(user)
+                .text(MessageText.RETRY)
+                .postback("Confirm", Payload.CONFIRM_RIDE)
+                .postback("Discard", Payload.DISCARD_RIDE)
+                .build();
+        sender.send(request);
     }
 }

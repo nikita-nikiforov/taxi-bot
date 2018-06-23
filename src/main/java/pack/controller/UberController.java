@@ -66,11 +66,8 @@ public class UberController {
         switch (response.getEvent_type()) {
             case "requests.status_changed":
                 uberRideService.proceedStatusChangeWebhook(response);
+            case "requests.receipt_ready":
+                uberRideService.proceedReceiptWebhook(response);
         }
-    }
-
-    @GetMapping("/test")
-    public String testView() {
-        return "uber-auth";
     }
 }
