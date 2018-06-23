@@ -43,7 +43,7 @@ public class UberController {
     @GetMapping("/uber-auth")
     public void getUberCode(@RequestParam("code") String code, @RequestParam("state") long chatId,
                               HttpServletResponse response) {
-        User user = userService.getUserByChatId(chatId);        // Get user from DB         // Message to be sent
+        User user = userService.getUserByChatId(chatId);        // Get user from DB
         // If User's access token have been caught and saved, then true
         boolean success = uberAuthService.authorizeUser(chatId, code);
         if (success) {

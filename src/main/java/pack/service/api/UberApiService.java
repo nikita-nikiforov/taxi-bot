@@ -173,7 +173,8 @@ public class UberApiService {
     public void deleteRideRequest(User user) {
         UberRide uberRide = uberRideService.getByUserChatId(user.getChatId()).get();
         String request_id = uberRide.getRequest();
-        uberRestService.deleteRequest(user, request_id);
+        String url = "https://sandbox-api.uber.com/v1.2/requests/" + request_id;
+        uberRestService.deleteRequest(user, url);
     }
 
     public Optional<ReceiptResponse> getReceiptResponse(User user, StatusChangedResponse statusChangedResponse) {

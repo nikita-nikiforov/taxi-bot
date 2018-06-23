@@ -1,6 +1,7 @@
 package pack.handler;
 
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
+import com.botscrew.botframework.annotation.Location;
 import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.outgoing.builder.ButtonTemplate;
@@ -58,6 +59,7 @@ public class StartHandler {
 
     @Postback(value = Payload.GET_STARTED)
     @Text(states = {State.LOGGED})
+    @Location(states = State.LOGGED)
     public void handleLoggedState(User user) {
         Request request = QuickReplies.builder()
                 .user(user)

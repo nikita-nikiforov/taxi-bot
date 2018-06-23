@@ -16,6 +16,7 @@ import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
 import pack.service.MessageService;
+import pack.service.UberRideService;
 
 import java.util.Arrays;
 
@@ -30,6 +31,9 @@ public class UberRideHandler {
     private MessageService messageService;
 
     @Autowired
+    private UberRideService uberRideService;
+
+    @Autowired
     private RideStatusWebhookHandler rideStatusWebhookHandler;
 
     @Text(states = State.UBER_PROCESSING)
@@ -37,7 +41,7 @@ public class UberRideHandler {
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.UBER_PROCESSING)
-                .postback("Cancel order", Payload.CANCEL_TRIP)
+                .postback("Cancel order", Payload.CANCEL_UBER_RIDE)
                 .build();
         sender.send(request);
     }
@@ -48,7 +52,8 @@ public class UberRideHandler {
         Request request = GenericTemplate.builder()
                 .user(user)
                 .addElement(vehicleTemplate)
-                .quickReplies(Arrays.asList(new PostbackQuickReply("Driver info", Payload.DRIVER_INFO)))
+                .quickReplies(Arrays.asList(new PostbackQuickReply("Driver info", Payload.DRIVER_INFO),
+                        new PostbackQuickReply("Cancel order", Payload.CANCEL_UBER_RIDE)))
                 .build();
         sender.send(user, MessageText.UBER_ACCEPTED);
         sender.send(request);
@@ -60,6 +65,8 @@ public class UberRideHandler {
                 .user(user)
                 .text(MessageText.UBER_ARRIVING)
                 .postback("Driver info", Payload.DRIVER_INFO)
+                .postback("Cancel order", Payload.CANCEL_UBER_RIDE)
+
                 .build();
         sender.send(request);
     }
@@ -91,5 +98,26 @@ public class UberRideHandler {
                 .build();
         sender.send(request);
         sender.send(user, "Phone number: " + messageService.getDriverPhone(user));
+    }
+
+    @Postback(Payload.CANCEL_UBER_RIDE)
+    public void handleCancelUberRide(User user) {
+        Request request = QuickReplies.builder()
+                .user(user)
+                .text(MessageText.CANCEL_TRIP_ASK)
+                .postback("Yes", Payload.CONFIRM_RIDE_CANCEL)
+                .postback("No", Payload.DISCARD_RIDE_CANCEL)
+                .build();
+        sender.send(request);
+    }
+
+    @Postback(Payload.CONFIRM_RIDE_CANCEL)
+    public void handleConfirmRideCancel(User user) {
+        uberRideService.cancelUberRide(user);
+        Request request = TextMessage.builder()
+                .user(user)
+                .text(MessageText.RIDE_CANCELED)
+                .build();
+        sender.send(request);
     }
 }

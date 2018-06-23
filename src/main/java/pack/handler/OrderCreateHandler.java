@@ -10,7 +10,7 @@ import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
 import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import com.botscrew.messengercdk.model.outgoing.element.WebAction;
-import com.botscrew.messengercdk.model.outgoing.element.button.PostbackButton;
+import com.botscrew.messengercdk.model.outgoing.element.quickreply.PostbackQuickReply;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,12 +81,11 @@ public class OrderCreateHandler {
             Coordinates coords = startPoint.get();
             orderService.setStartPoint(user, coords);            // Save order start point
             userService.save(user, State.START_TEXT_ASKED);     // Save user
-            // Get answer request
-            Request request = getLocationConfirmRequest(user, Payload.CONFIRM_START_POINT,
+            // Show map and ask confirmation
+            askLocationConfirm(user, Payload.CONFIRM_START_POINT,
                     Payload.DISCARD_START_POINT, coords);
-            sender.send(request);
-        } else {
-            Request request = QuickReplies.builder()            // Remain as START_INPUT
+        } else {                                                // Remain as START_INPUT
+            Request request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.PLACE_NOT_FOUND)
                     .location()
@@ -95,23 +94,29 @@ public class OrderCreateHandler {
         }
     }
 
-    // Create Request asking to confirm the found place
-    private Request getLocationConfirmRequest(User user,
-                    String payloadConfirm, String payloadDiscard, Coordinates coords) {
-        return GenericTemplate.builder()
+    // Send the map of geocoded address and ask user to confirm. The method is universal
+    // for confirmation of start and end points
+    private void askLocationConfirm(User user, String payloadConfirm, String payloadDiscard,
+                                    Coordinates coords) {
+        Request mapView = GenericTemplate.builder()
                 .user(user)
                 .addElement(TemplateElement.builder()
-                        .title(MessageText.TEXT_ASKED_TITLE)
-                        .subtitle(MessageText.TEXT_ASKED_SUBTITLE)
+                        .title("Pinned Location")
                         .imageUrl(mapboxService.getConfirmAddressMapUrl(coords))
-                        .button(new PostbackButton("Yes", payloadConfirm))
-                        .button(new PostbackButton("No", payloadDiscard))
                         .defaultAction(WebAction.builder()
-                            .url(mapboxService.getMarkeredMapUrl(coords))
-                            .makeCompactWebView()
-                            .build())
+                                .url(mapboxService.getMarkeredMapUrl(coords))
+                                .makeCompactWebView()
+                                .build())
                         .build())
                 .build();
+        Request quickReplies = QuickReplies.builder()
+                .user(user)
+                .text(MessageText.DID_YOU_MEAN_THIS)
+                .addQuickReply(new PostbackQuickReply("Yes", payloadConfirm))
+                .addQuickReply(new PostbackQuickReply("No", payloadDiscard))
+                .build();
+        sender.send(mapView);
+        sender.send(quickReplies);
     }
 
     @Postback(value = Payload.CONFIRM_START_POINT)
@@ -140,11 +145,12 @@ public class OrderCreateHandler {
                     .location()
                     .build();
         } else {                                    // If Uber has no products in the region
-            userService.save(user, State.LOGGED);               // user -> LOGGED
+//            userService.save(user, State.LOGGED);               // user -> LOGGED
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.UBER_NO_PRODUCTS)
                     .location()
+                    .postback("Cancel", Payload.DISCARD_ORDER)
                     .build();
         }
         sender.send(request);
@@ -152,24 +158,24 @@ public class OrderCreateHandler {
 
     @Text(states = {State.END_INPUT, State.END_TEXT_ASKED})
     public void handleEndInput(User user, @Text String text) {
-        Request request;                                            // to be returned
         // Get Coordinates
         Optional<Coordinates> endPoint = geocodingService.getCoordinatesFromAddress(text);
         if (endPoint.isPresent()) {
             Coordinates coords = endPoint.get();
             orderService.setEndPoint(user, coords);                  // Set them to the order in DB
-            userService.save(user, State.END_TEXT_ASKED);        // Update user's state
-            request = getLocationConfirmRequest(user, Payload.CONFIRM_END_POINT,
+            userService.save(user, State.END_TEXT_ASKED);            // Update user's state
+            // Show map and ask confirmation
+            askLocationConfirm(user, Payload.CONFIRM_END_POINT,
                     Payload.DISCARD_END_POINT, coords);
         } else {
-            request = QuickReplies.builder()
+            Request request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.PLACE_NOT_FOUND)
                     .location()
-                    .postback("Cancel", Payload.DISCARD_RIDE)
+                    .postback("Cancel", Payload.DISCARD_ORDER)
                     .build();
+            sender.send(request);
         }
-        sender.send(request);
     }
 
     @Postback(value = Payload.CONFIRM_END_POINT)
@@ -185,7 +191,7 @@ public class OrderCreateHandler {
                 .user(user)
                 .text(MessageText.END_INPUT_RETRY)
                 .location()
-                .postback("Cancel", Payload.DISCARD_RIDE)
+                .postback("Cancel", Payload.DISCARD_ORDER)
                 .build();
         sender.send(request);
     }
@@ -200,28 +206,28 @@ public class OrderCreateHandler {
             request = QuickReplies.builder()
                     .user(user)
                     .text(messageService.getTripEstimate(estimateFare.get()))
-                    .postback("Confirm", Payload.CONFIRM_RIDE)
-                    .postback("Discard", Payload.DISCARD_RIDE)
+                    .postback("Confirm", Payload.CONFIRM_ORDER)
+                    .postback("Discard", Payload.DISCARD_ORDER)
                     .build();
         } else {
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.END_ERROR)
                     .location()
-                    .postback("Cancel", Payload.DISCARD_RIDE)
+                    .postback("Cancel", Payload.DISCARD_ORDER)
                     .build();
         }
         sender.send(request);
     }
 
-    @Postback(value = Payload.DISCARD_RIDE)
+    @Postback(value = Payload.DISCARD_ORDER)
     public void handleDiscardRide(User user) {
         orderService.removeByUser(user);
         userService.save(user, State.LOGGED);
         startHandler.handleLoggedState(user);
     }
 
-    @Postback(value = Payload.CONFIRM_RIDE)
+    @Postback(value = Payload.CONFIRM_ORDER)
     public void handleConfirmRide(User user) {
         // Sends request to start UberTrip to Uber. If has started, then true
         if (uberRideService.confirmRide(user)) {
@@ -237,8 +243,8 @@ public class OrderCreateHandler {
             Request request = QuickReplies.builder()
                     .user(user)
                     .text(messageService.getTripEstimate(estimateFare.get()))
-                    .postback("Confirm", Payload.CONFIRM_RIDE)
-                    .postback("Discard", Payload.DISCARD_RIDE)
+                    .postback("Confirm", Payload.CONFIRM_ORDER)
+                    .postback("Discard", Payload.DISCARD_ORDER)
                     .build();
             sender.send(user, MessageText.FARE_ERROR);
             sender.send(request);
@@ -250,8 +256,8 @@ public class OrderCreateHandler {
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.RETRY)
-                .postback("Confirm", Payload.CONFIRM_RIDE)
-                .postback("Discard", Payload.DISCARD_RIDE)
+                .postback("Confirm", Payload.CONFIRM_ORDER)
+                .postback("Discard", Payload.DISCARD_ORDER)
                 .build();
         sender.send(request);
     }

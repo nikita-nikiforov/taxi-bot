@@ -99,7 +99,7 @@ public class MessageService {
     }
 
     public String getReceiptTemplate(ReceiptResponse response) {
-        String result = "Ride receipt: \nDistance: " + response.getDistance() + " "
+        String result = "Your receipt: \nDistance: " + response.getDistance() + " "
                 + response.getDistance_label() + " \nDuration: " + response.getDuration()
                 + " \nFare: " + response.getTotal_charged();
         return result;

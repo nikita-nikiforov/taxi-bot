@@ -9,8 +9,7 @@ public class MessageText {
     public static final String FAILED_AUTH = "You failed to authorize in Uber :(\nMaybe, try again?";
     public static final String START_INPUT = "Please, send the start location or write it down.";
     public static final String UBER_NO_PRODUCTS = "Uber has no service in this region. Another one start point?";
-    public static final String TEXT_ASKED_TITLE = "Did you mean this place?";
-    public static final String TEXT_ASKED_SUBTITLE = "You can tap the map to open it.";
+    public static final String DID_YOU_MEAN_THIS = "Did you mean this place?";
     public static final String START_INPUT_TRUE = "Awesome! Now enter the destination.";
     public static final String END_INPUT_RETRY = "Write the destination more precisely " +
             "or just send the location.";
@@ -34,5 +33,10 @@ public class MessageText {
     public static final String UBER_COMPLETED = "Your ride have been completed!";
 
     public static final String RETRY = "Please, choose the option:";
+
+    public static final String CANCEL_TRIP_ASK = "Are you sure to cancel the trip? You will pay " +
+            "for driver expectation.";
+
+    public static final String RIDE_CANCELED = "Ride was canceled.";
 
 }

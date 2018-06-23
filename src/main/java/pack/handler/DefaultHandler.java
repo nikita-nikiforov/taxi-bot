@@ -1,6 +1,7 @@
 package pack.handler;
 
 import com.botscrew.botframework.annotation.ChatEventsProcessor;
+import com.botscrew.botframework.annotation.Location;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +9,6 @@ import pack.dao.OrderRepository;
 import pack.dao.UberCredentialRepository;
 import pack.dao.UberRideRepository;
 import pack.dao.UserRepository;
-import pack.entity.Order;
-import pack.entity.UberCredential;
-import pack.entity.UberRide;
 import pack.entity.User;
 import pack.service.OrderService;
 import pack.service.UserService;
@@ -57,27 +55,13 @@ public class DefaultHandler {
                 userService.save(user, "LOGGED");
                 startHandler.handleLoggedState(user);
                 break;
-            case "clean all":
-                cleanAll(user);
-                sender.send(user, "Bye!");
-                break;
             default: sender.send(user, "Can't understand you.");
         }
-
     }
 
-    private void cleanAll(User user) {
-        uberApiService.deleteRideRequest(user);
-
-        userRepository.delete(user.getChatId());
-
-        Order order = orderService.getOrderByChatId(user.getChatId());
-        orderRepository.delete(order);
-
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
-        uberRideRepository.delete(uberRide);
-
-        UberCredential uberCredential = uberCredentialRepository.findByUserChatId(user.getChatId());
-        uberCredentialRepository.delete(uberCredential);
+    @Location
+    public void handleStandart(User user) {
+        sender.send(user, "Can't understand you.");
     }
+
 }
