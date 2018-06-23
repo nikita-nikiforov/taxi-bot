@@ -1,19 +1,15 @@
 package pack.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import pack.entity.UberCredential;
 import pack.entity.User;
 import pack.init.AppProperties;
 import pack.model.UberAccessTokenResponse;
 import pack.model.UberUserProfile;
 import pack.service.api.UberApiService;
+import pack.service.dao.UberCredentialService;
+import pack.service.dao.UserService;
 
 @Service
 public class UberAuthService {
@@ -34,8 +30,7 @@ public class UberAuthService {
     public boolean authorizeUser(Long chatId, String code) {
         UberCredential myCredential = new UberCredential();     // Credential entity to setStartPoint
         User user = userService.getUserByChatId(chatId);        // Get user by ChatId
-        UberAccessTokenResponse accessTokenResponse = getAccessTokenResponse(code); // Get access_token
-
+        UberAccessTokenResponse accessTokenResponse = uberApiService.getAccessTokenResponse(code); // Get access_token
         // Here handle exception TODO
         // Get access_token and set it
         myCredential.setAccess_token(accessTokenResponse.getAccess_token());
@@ -48,39 +43,6 @@ public class UberAuthService {
         myCredential.setUuid(uuid);
 
         return uberCredentialService.save(myCredential);               // Save
-    }
-
-    public UberAccessTokenResponse getAccessTokenResponse(String code) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        String url = "https://login.uber.com/oauth/v2/token";
-        MultiValueMap<String, String> params = getParamsToObtainAccessToken(code);
-
-        // set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-
-
-        UberAccessTokenResponse tokenResponse = null;
-        try {
-            tokenResponse = restTemplate.postForObject(url,
-                    entity, UberAccessTokenResponse.class, params);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return tokenResponse;
-
-    }
-
-    private MultiValueMap getParamsToObtainAccessToken(String code) {
-        MultiValueMap<String, String> request = new LinkedMultiValueMap();
-        request.add("client_secret", appProperties.getCLIENT_SECRET());
-        request.add("client_id", appProperties.getCLIENT_ID());
-        request.add("grant_type", "authorization_code");
-        request.add("redirect_uri", appProperties.getLOGIN_REDIRECT_URL());
-        request.add("code", code);
-        return request;
     }
 
 

@@ -85,7 +85,7 @@ public class MessageService {
         return driver.getPhone_number();
     }
 
-    // Get Vehicle object for current trip
+    // Get Vehicle object for current user's trip
     public TemplateElement getVehicleTemplate(User user) {
         Vehicle vehicle = uberRideService.getVehicleResponse(user);
         String title = vehicle.getMake() + " " + vehicle.getModel();

@@ -38,11 +38,7 @@ public class GeocodingService {
                         geoResult.geometry.location.lng);
                 result = Optional.of(coord);
             }
-        } catch (ApiException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (ApiException | InterruptedException | IOException e) {
             e.printStackTrace();
         }
         return result;

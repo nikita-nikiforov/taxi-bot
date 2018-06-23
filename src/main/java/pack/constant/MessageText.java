@@ -7,17 +7,17 @@ public class MessageText {
     public static final String LOGIN_FAILED = "You failed to authorize. Please, try again.";
     public static final String LOGGED = "What do you want to do now?";
     public static final String FAILED_AUTH = "You failed to authorize in Uber :(\nMaybe, try again?";
-    public static final String START_INPUT = "Please, send the start location or write it down.";
+    public static final String START_INPUT = "Please, send the start location or write the address.";
     public static final String UBER_NO_PRODUCTS = "Uber has no service in this region. Another one start point?";
     public static final String DID_YOU_MEAN_THIS = "Did you mean this place?";
     public static final String START_INPUT_TRUE = "Awesome! Now enter the destination.";
-    public static final String END_INPUT_RETRY = "Write the destination more precisely " +
+    public static final String END_INPUT_RETRY = "Write the address more precisely " +
             "or just send the location.";
-    public static final String END_ERROR = "We can't ride you here. Set another destination.";
+    public static final String END_ERROR = "We can't ride you here. Try another destination.";
     public static final String PLACE_NOT_FOUND = "Can't find this place. Write it more precisely " +
             "or just send the location.";
     public static final String FARE_CONFIRMED = "Wait for ride processing.";
-    public static final String FARE_ERROR = "Something went wrong. Here's a new estimate fare:";
+    public static final String FARE_ERROR = "The estimate fare has become obsolete. Here's a new one:";
     public static final String EXIT = "Okay! If you want to order a taxi again, \" +\n" +
             "            \"write to me. Have a nice day :)";
     public static final String FAV_PLACE_INPUT_MAP = "Select the place you want to setStartPoint.";

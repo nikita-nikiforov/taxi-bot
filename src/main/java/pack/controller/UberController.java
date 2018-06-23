@@ -11,8 +11,9 @@ import pack.init.AppProperties;
 import pack.model.StatusChangedResponse;
 import pack.service.UberAuthService;
 import pack.service.UberRideService;
-import pack.service.UserService;
+import pack.service.WebhookService;
 import pack.service.api.UberApiService;
+import pack.service.dao.UserService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -33,6 +34,9 @@ public class UberController {
 
     @Autowired
     StartHandler startHandler;
+
+    @Autowired
+    private WebhookService webhookService;
 
     @Autowired
     private UberRideService uberRideService;
@@ -65,9 +69,9 @@ public class UberController {
     public void getUberResponse(@RequestBody StatusChangedResponse response) {
         switch (response.getEvent_type()) {
             case "requests.status_changed":
-                uberRideService.proceedStatusChangeWebhook(response);
+                webhookService.handleStatusChangeWebhook(response);
             case "requests.receipt_ready":
-                uberRideService.proceedReceiptWebhook(response);
+                uberRideService.handleReceiptWebhook(response);
         }
     }
 }

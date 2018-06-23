@@ -5,23 +5,25 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pack.dao.UberRideRepository;
 import pack.entity.Order;
 import pack.entity.UberRide;
 import pack.entity.User;
+import pack.init.AppProperties;
 import pack.model.*;
 import pack.model.HistoryResponse.History;
 import pack.service.OrderService;
-import pack.service.UberCredentialService;
+import pack.service.dao.OrderDaoService;
+import pack.service.dao.UberCredentialService;
 import pack.service.UberRideService;
-import pack.service.UserService;
+import pack.service.dao.UserService;
+import pack.service.dao.UberRideDaoService;
 
 import java.util.*;
 
@@ -44,18 +46,22 @@ public class UberApiService {
     private OrderService orderService;
 
     @Autowired
+    private OrderDaoService orderDaoService;
+
+    @Autowired
     private UberRideRepository uberRideRepository;      // TODO to service
 
     @Autowired
     private UberRideService uberRideService;
 
     @Autowired
+    private UberRideDaoService uberRideDaoService;
+
+    @Autowired
     private UberRestService uberRestService;
 
-    // TODO
-    public JSONObject makeOrder(User user) {
-        return null;
-    }
+    @Autowired
+    private AppProperties appProperties;
 
     public JSONObject infoAboutMe(User user) {
         return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
@@ -113,7 +119,7 @@ public class UberApiService {
     public Optional<UberRideResponse> getUberNewRideResponse(User user) {
 
         UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
-        Order order = orderService.getOrderByChatId(user.getChatId());
+        Order order = orderDaoService.getOrderByChatId(user.getChatId());
         UberRideRequest jsonBody = new UberRideRequest(order, uberRide);
         String url = "https://sandbox-api.uber.com/v1.2/requests";
 
@@ -134,7 +140,7 @@ public class UberApiService {
         // Create request body for json
         SandboxPutRequest reqBody = new SandboxPutRequest(newStatus);
         // Get requestId by User
-        String requestId = uberRideService.getByUserChatId(user.getChatId()).get().getRequest();
+        String requestId = uberRideDaoService.getByUserChatId(user.getChatId()).get().getRequest();
         String url = "https://sandbox-api.uber.com/v1.2/sandbox/requests/" + requestId;
         uberRestService.putRequest(user, url, reqBody, Object.class);
     }
@@ -171,7 +177,7 @@ public class UberApiService {
 
     // To DELETE the ride by request_id
     public void deleteRideRequest(User user) {
-        UberRide uberRide = uberRideService.getByUserChatId(user.getChatId()).get();
+        UberRide uberRide = uberRideDaoService.getByUserChatId(user.getChatId()).get();
         String request_id = uberRide.getRequest();
         String url = "https://sandbox-api.uber.com/v1.2/requests/" + request_id;
         uberRestService.deleteRequest(user, url);
@@ -180,5 +186,35 @@ public class UberApiService {
     public Optional<ReceiptResponse> getReceiptResponse(User user, StatusChangedResponse statusChangedResponse) {
         String url = statusChangedResponse.getResource_href();
         return uberRestService.getRequest(user, url, ReceiptResponse.class);
+    }
+
+    public UberAccessTokenResponse getAccessTokenResponse(String code) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://login.uber.com/oauth/v2/token";
+        MultiValueMap<String, String> params = getParamsToObtainAccessToken(code);
+
+        // set headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+
+        UberAccessTokenResponse tokenResponse = null;
+        try {
+            tokenResponse = restTemplate.postForObject(url,
+                    entity, UberAccessTokenResponse.class, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tokenResponse;
+    }
+
+    private MultiValueMap<String, String> getParamsToObtainAccessToken(String code) {
+        MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
+        request.add("client_secret", appProperties.getCLIENT_SECRET());
+        request.add("client_id", appProperties.getCLIENT_ID());
+        request.add("grant_type", "authorization_code");
+        request.add("redirect_uri", appProperties.getLOGIN_REDIRECT_URL());
+        request.add("code", code);
+        return request;
     }
 }

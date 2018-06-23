@@ -16,7 +16,7 @@ import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
 import pack.init.AppProperties;
-import pack.service.UserService;
+import pack.service.dao.UserService;
 
 @ChatEventsProcessor
 public class StartHandler {

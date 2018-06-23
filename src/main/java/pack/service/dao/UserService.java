@@ -1,4 +1,4 @@
-package pack.service;
+package pack.service.dao;
 
 import com.botscrew.messengercdk.model.MessengerUser;
 import com.botscrew.messengercdk.service.UserProvider;

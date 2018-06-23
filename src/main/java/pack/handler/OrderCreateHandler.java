@@ -23,10 +23,11 @@ import pack.model.ProductItem;
 import pack.service.MessageService;
 import pack.service.OrderService;
 import pack.service.UberRideService;
-import pack.service.UserService;
 import pack.service.api.GeocodingService;
 import pack.service.api.MapboxService;
 import pack.service.api.UberApiService;
+import pack.service.dao.OrderDaoService;
+import pack.service.dao.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,9 @@ public class OrderCreateHandler {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderDaoService orderDaoService;
 
     @Autowired
     private MapboxService mapboxService;
@@ -222,7 +226,7 @@ public class OrderCreateHandler {
 
     @Postback(value = Payload.DISCARD_ORDER)
     public void handleDiscardRide(User user) {
-        orderService.removeByUser(user);
+        orderDaoService.removeByUser(user);
         userService.save(user, State.LOGGED);
         startHandler.handleLoggedState(user);
     }
@@ -238,7 +242,7 @@ public class OrderCreateHandler {
                     .build();
             sender.send(request);
         } else {
-            // If ride failed to be started on Uber, then send a new estimate fare to user
+            // If ride failed to be started in Uber, then send a new estimate fare to user
             Optional<FareResponse> estimateFare = orderService.getEstimateFare(user);
             Request request = QuickReplies.builder()
                     .user(user)
@@ -251,6 +255,7 @@ public class OrderCreateHandler {
         }
     }
 
+    @Location(states = State.FARE_CONFIRMATION)
     @Text(states = State.FARE_CONFIRMATION)
     public void handleTextWhileConfirmation(User user) {
         Request request = QuickReplies.builder()

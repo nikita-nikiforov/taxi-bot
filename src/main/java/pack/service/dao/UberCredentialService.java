@@ -1,4 +1,4 @@
-package pack.service;
+package pack.service.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

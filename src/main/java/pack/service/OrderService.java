@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.constant.RideStatus;
 import pack.dao.OrderRepository;
-import pack.dao.UberRideRepository;
 import pack.entity.Order;
 import pack.entity.UberRide;
 import pack.entity.User;
@@ -13,8 +12,9 @@ import pack.factory.CoordinatesFactory;
 import pack.model.FareRequest;
 import pack.model.FareResponse;
 import pack.model.ProductItem;
-import pack.service.api.GeocodingService;
 import pack.service.api.UberApiService;
+import pack.service.dao.OrderDaoService;
+import pack.service.dao.UberRideDaoService;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,29 +23,23 @@ import java.util.Optional;
 public class OrderService {
 
     @Autowired
-    GeocodingService geocodingService;
+    private OrderDaoService orderDaoService;
 
     @Autowired
-    OrderRepository orderRepository;
+    private OrderRepository orderRepository;
 
     @Autowired
-    UserService userService;
-
-    @Autowired
-    UberApiService uberApiService;
-
-    @Autowired
-    UberRideRepository uberRideRepository;
-
-    @Autowired
-    MessageService messageService;
+    private UberApiService uberApiService;
 
     @Autowired
     private UberRideService uberRideService;
 
+    @Autowired
+    private UberRideDaoService uberRideDaoService;
+
     // Set start point. If Order is new, create it
     public void setStartPoint(User user, Coordinates coord) {
-        Optional<Order> foundOrder = getOrderOptionalByChatId(user.getChatId());
+        Optional<Order> foundOrder = orderDaoService.getOrderOptionalByChatId(user.getChatId());
         Order result = foundOrder.orElseGet(() -> new Order(user));
         result.setStartLat(coord.getLatitude());
         result.setStartLong(coord.getLongitude());
@@ -81,48 +75,27 @@ public class OrderService {
 
         estimateResponse.ifPresent(e -> {
             // Get Order from DB or create new
-            UberRide uberRide = uberRideService.getByOrder(order).orElseGet(
+            UberRide uberRide = uberRideDaoService.getByOrder(order).orElseGet(
                     () -> new UberRide(order,
                             product.getProduct_id(), RideStatus.CREATED.getName()));
             uberRide.setFare_id(e.getFare().getFare_id());          // Update fare_id
-            uberRideService.save(uberRide);                         // Save UberRide
+            uberRideDaoService.save(uberRide);                         // Save UberRide
         });
         return estimateResponse;
     }
 
-    public Order getOrderByChatId(long chatId) {
-        return orderRepository.findByUserChatId(chatId);
-    }
-
-    // Return Optional<Order> by chatId
-    public Optional<Order> getOrderOptionalByChatId(long chatId) {
-        Optional<Order> optional = Optional.empty();
-        Order foundOrder = orderRepository.findByUserChatId(chatId);
-        if (foundOrder != null) {
-            optional = Optional.of(foundOrder);
-        }
-        return optional;
-    }
-
     public Coordinates getStartPointCoordinates(User user) {
-        Order order = getOrderByChatId(user.getChatId());
+        Order order = orderDaoService.getOrderByChatId(user.getChatId());
         return CoordinatesFactory.create(order.getStartLat(), order.getStartLong());
     }
 
     public Coordinates getEndPointCoordinates(User user) {
-        Order order = getOrderByChatId(user.getChatId());
+        Order order = orderDaoService.getOrderByChatId(user.getChatId());
         return CoordinatesFactory.create(order.getEndLat(), order.getEndLong());
-    }
-
-    public void removeByUser(User user) {
-        Order order = getOrderByChatId(user.getChatId());
-        Optional<UberRide> uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId());
-        uberRide.ifPresent(u -> uberRideRepository.delete(u));
-        orderRepository.delete(order);
     }
 
     // TODO
     public void stopTrip(User user) {
-        removeByUser(user);
+        orderDaoService.removeByUser(user);
     }
 }

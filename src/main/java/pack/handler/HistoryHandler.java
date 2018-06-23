@@ -13,7 +13,7 @@ import pack.init.AppProperties;
 import pack.model.HistoryResponse.History;
 import pack.service.MessageService;
 import pack.service.api.UberApiService;
-import pack.service.UserService;
+import pack.service.dao.UserService;
 
 import java.util.List;
 

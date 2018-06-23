@@ -11,7 +11,7 @@ import pack.dao.UberRideRepository;
 import pack.dao.UserRepository;
 import pack.entity.User;
 import pack.service.OrderService;
-import pack.service.UserService;
+import pack.service.dao.UserService;
 import pack.service.api.UberApiService;
 
 @ChatEventsProcessor

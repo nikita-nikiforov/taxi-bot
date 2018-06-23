@@ -6,7 +6,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import pack.entity.User;
-import pack.service.UberCredentialService;
+import pack.service.dao.UberCredentialService;
 
 import java.util.Optional;
 
