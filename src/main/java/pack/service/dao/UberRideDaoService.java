@@ -6,7 +6,6 @@ import pack.dao.UberRideRepository;
 import pack.entity.Order;
 import pack.entity.UberRide;
 import pack.entity.User;
-
 import java.util.Optional;
 
 @Service
@@ -33,6 +32,4 @@ public class UberRideDaoService {
     public void removeByUser(User user) {
         uberRideRepository.removeByOrderUser(user);
     }
-
-
 }

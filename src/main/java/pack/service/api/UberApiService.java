@@ -19,41 +19,25 @@ import pack.entity.User;
 import pack.init.AppProperties;
 import pack.model.*;
 import pack.model.HistoryResponse.History;
-import pack.service.OrderService;
-import pack.service.UberRideService;
 import pack.service.dao.OrderDaoService;
 import pack.service.dao.UberCredentialService;
 import pack.service.dao.UberRideDaoService;
-import pack.service.dao.UserService;
 
 import java.util.*;
 
 @Service
 public class UberApiService {
-
     @Autowired
     private Gson gson;
 
     @Autowired
-    private RestTemplateService restTemplateService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
     private UberCredentialService uberCredentialService;
-
-    @Autowired
-    private OrderService orderService;
 
     @Autowired
     private OrderDaoService orderDaoService;
 
     @Autowired
     private UberRideRepository uberRideRepository;      // TODO to service
-
-    @Autowired
-    private UberRideService uberRideService;
 
     @Autowired
     private UberRideDaoService uberRideDaoService;
@@ -64,50 +48,11 @@ public class UberApiService {
     @Autowired
     private AppProperties appProperties;
 
-    public JSONObject infoAboutMe(User user) {
-        return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
-    }
-
-    public Optional<UberUserProfile> aboutMe(User user) {
-        return uberRestService.getRequest(user, "https://api.uber.com/v1.2/me", UberUserProfile.class);
-    }
-
     public List<History> getHistoryList(User user) {
         List<History> result = new ArrayList<>();
         Optional<HistoryResponse> response = uberRestService.getRequest(user, "https://api.uber.com/v1.2/history", HistoryResponse.class);
         response.ifPresent(r -> result.addAll(Arrays.asList(r.getHistory())));
         return result;
-    }
-
-    public JSONObject retrieveJson(User user, String url, HttpMethod method, Map<String, String> params) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        String access_token = uberCredentialService.getAccessTokenByUser(user);
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-        params.forEach(builder::queryParam);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + access_token);
-        headers.set("Accept-Language", "en_US ");
-        headers.set("Content-Type", "application/json");
-
-        HttpEntity entity = new HttpEntity<>(headers);
-
-        ResponseEntity<String> tokenResponse = null;
-        try {
-            tokenResponse = restTemplate.exchange(builder.toUriString(), method, entity,
-                    String.class);
-            String body = tokenResponse.getBody();
-            return new JSONObject(body);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null; //TODO
-        }
-    }
-
-    public JSONObject retrieveJson(User user, String url, HttpMethod method) {
-        return retrieveJson(user, url, method, new HashMap<>());
     }
 
     public Optional<FareResponse> getEstimateResponse(User user, FareRequest fareRequest) {
@@ -118,7 +63,6 @@ public class UberApiService {
     // Make request to start new ride and get response with request_id.
     // It uses Order coords and UberRide fare_id and product_id
     public Optional<UberRideResponse> getUberNewRideResponse(User user) {
-
         UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
         Order order = orderDaoService.getOrderByChatId(user.getChatId());
         UberRideRequest jsonBody = new UberRideRequest(order, uberRide);
@@ -136,6 +80,27 @@ public class UberApiService {
         return response.get();
     }
 
+    // To determine if there's Uber service by coordinates TODO
+    public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
+        Map<String, String> params = new HashMap<>();
+        params.put("latitude", coord.getLatitude().toString());
+        params.put("longitude", coord.getLongitude().toString());
+        // TODO
+        JSONObject productsJson = retrieveJson(user, "https://api.uber.com/v1.2/products",
+                HttpMethod.GET, params);
+        JSONArray array = (JSONArray) productsJson.get("products");
+        List<ProductItem> productItems = new ArrayList<>();
+        // TODO here catch exception
+        try {
+            array.forEach(e -> {
+                JSONObject productJson = (JSONObject) e;
+                ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
+                productItems.add(productItem);
+            });
+        } catch (Exception e) {}
+        return productItems;
+    }
+
     // To update the ride state, it's for the fake logic
     public void putSandboxRide(User user, String newStatus) {
         // Create request body for json
@@ -144,36 +109,6 @@ public class UberApiService {
         String requestId = uberRideDaoService.getByUserChatId(user.getChatId()).get().getRequest();
         String url = "https://sandbox-api.uber.com/v1.2/sandbox/requests/" + requestId;
         uberRestService.putRequest(user, url, reqBody, Object.class);
-    }
-
-    // To determine if there's Uber service by coordinates TODO
-    public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
-        Map<String, String> params = new HashMap<>();
-        params.put("latitude", coord.getLatitude().toString());
-        params.put("longitude", coord.getLongitude().toString());
-
-        // TODO
-        JSONObject productsJson = retrieveJson(user, "https://api.uber.com/v1.2/products",
-                HttpMethod.GET, params);
-        JSONArray array = (JSONArray) productsJson.get("products");
-        List<ProductItem> productItems = new ArrayList<>();
-
-        // TODO here catch exception
-        try {
-//            array.forEach(e -> {
-//                JSONObject productJson = (JSONObject) e;
-//                ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
-//                productItems.add(productItem);
-//            });
-            for (Object e : array) {
-                JSONObject productJson = (JSONObject) e;
-                ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
-                productItems.add(productItem);
-            }
-
-        } catch (Exception e) {
-        }
-        return productItems;
     }
 
     // To DELETE the ride by request_id
@@ -245,5 +180,44 @@ public class UberApiService {
             result = Optional.empty();                  // when user inputs wrong address
         }
         return result;
+    }
+
+    public JSONObject infoAboutMe(User user) {
+        return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
+    }
+
+    public Optional<UberUserProfile> aboutMe(User user) {
+        return uberRestService.getRequest(user, "https://api.uber.com/v1.2/me", UberUserProfile.class);
+    }
+
+    public JSONObject retrieveJson(User user, String url, HttpMethod method, Map<String, String> params) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String access_token = uberCredentialService.getAccessTokenByUser(user);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+        params.forEach(builder::queryParam);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + access_token);
+        headers.set("Accept-Language", "en_US ");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> tokenResponse = null;
+        try {
+            tokenResponse = restTemplate.exchange(builder.toUriString(), method, entity,
+                    String.class);
+            String body = tokenResponse.getBody();
+            return new JSONObject(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; //TODO
+        }
+    }
+
+    public JSONObject retrieveJson(User user, String url, HttpMethod method) {
+        return retrieveJson(user, url, method, new HashMap<>());
     }
 }

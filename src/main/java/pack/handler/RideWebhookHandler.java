@@ -1,21 +1,17 @@
 package pack.handler;
 
-import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
+import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pack.constant.Payload;
-import pack.entity.UberRide;
+import pack.constant.MessageText;
 import pack.entity.User;
 import pack.model.ReceiptResponse;
 import pack.service.MessageService;
-import pack.service.OrderService;
-import pack.service.UberRideService;
 
 @Component
 public class RideWebhookHandler {
-
     @Autowired
     private Sender sender;
 
@@ -23,41 +19,35 @@ public class RideWebhookHandler {
     private UberRideHandler uberRideHandler;
 
     @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private UberRideService uberRideService;
-
-    @Autowired
     private MessageService messageService;
 
-    public void handleProcessing(User user, UberRide uberRide) {
+    public void handleProcessing(User user) {
         uberRideHandler.handleUberProcessingText(user);
     }
 
-    public void handleAccepted(User user, UberRide uberRide) {
+    public void handleAccepted(User user) {
         uberRideHandler.handleUberAcceptedText(user);
     }
 
-    public void handleArriving(User user, UberRide uberRide) {
+    public void handleArriving(User user) {
         uberRideHandler.handleUberArrivingText(user);
     }
 
-    public void handleInProgress(User user, UberRide uberRide) {
+    public void handleInProgress(User user) {
         uberRideHandler.handleUberInProgressText(user);
     }
 
-    public void handleCompleted(User user, UberRide uberRide) {
+    public void handleCompleted(User user) {
         uberRideHandler.handleUberCompletedText(user);
     }
 
     public void handleReceipt(User user, ReceiptResponse receiptResponse) {
         String receipt = messageService.getReceiptTemplate(receiptResponse);
-        Request request = QuickReplies.builder()
+        Request request = TextMessage.builder()
                 .user(user)
                 .text(receipt)
-                .postback("Details", Payload.FARE_DETAILS)
                 .build();
         sender.send(request);
+        sender.send(user, MessageText.BYE);
     }
 }

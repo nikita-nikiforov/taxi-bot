@@ -8,7 +8,6 @@ import pack.entity.User;
 
 @Service
 public class UberCredentialService {
-
     @Autowired
     private UberCredentialRepository uberCredentialRepository;
 

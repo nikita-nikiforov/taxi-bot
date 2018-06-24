@@ -14,26 +14,25 @@ import pack.service.UberRideService;
 import pack.service.WebhookService;
 import pack.service.api.UberApiService;
 import pack.service.dao.UserService;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Controller
 public class UberController {
     @Autowired
-    Sender sender;
+    private Sender sender;
 
     @Autowired
-    UberApiService uberApiService;
+    private UberApiService uberApiService;
 
     @Autowired
-    UberAuthService uberAuthService;
+    private UberAuthService uberAuthService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    StartHandler startHandler;
+    private StartHandler startHandler;
 
     @Autowired
     private WebhookService webhookService;
@@ -53,7 +52,6 @@ public class UberController {
         if (success) {
             userService.save(user, State.LOGGED);
             startHandler.handleLoggedState(user);
-
         } else {
             startHandler.handleGetStarted(user);
         }

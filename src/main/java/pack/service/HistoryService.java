@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @Service
 public class HistoryService {
-
     @Autowired
     private UberApiService uberApiService;
 

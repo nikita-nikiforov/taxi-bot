@@ -4,7 +4,6 @@ import javax.persistence.*;
 
 @Entity
 public class UberRide {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -15,8 +14,10 @@ public class UberRide {
 
     private String fare_id;
     private String product_id;
+
     @Column(name = "request_id")
     private String request;
+
     private String status;
 
     public UberRide() {

@@ -1,7 +1,6 @@
 package pack.model;
 
 public class ProductResponse {
-
     private Product[] products;
 
     public static class Product {

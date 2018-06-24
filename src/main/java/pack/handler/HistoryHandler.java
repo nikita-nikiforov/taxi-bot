@@ -12,7 +12,6 @@ import pack.entity.User;
 import pack.model.custom.HistoryItem;
 import pack.service.HistoryService;
 import pack.service.MessageService;
-
 import java.util.List;
 
 @ChatEventsProcessor
@@ -35,8 +34,7 @@ public class HistoryHandler {
         List<HistoryItem> list = historyService.getHistoryItemList(user);           // Get History items
         // Pass them to messageService to get TemplateElements
         List<TemplateElement> templateElements = messageService.getHistoryTemplateElements(list);
-
-        Request request = GenericTemplate.builder()
+        Request request = GenericTemplate.builder()         // Make request with elements
                 .user(user)
                 .elements(templateElements)
                 .build();

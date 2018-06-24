@@ -19,14 +19,12 @@ import pack.service.FavoritePlaceService;
 import pack.service.MessageService;
 import pack.service.api.GeocodingService;
 import pack.service.dao.UserService;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @ChatEventsProcessor
 public class FavoritePlaceHandler {
-
     @Autowired
     private FavoritePlaceService favoritePlaceService;
 
@@ -47,8 +45,12 @@ public class FavoritePlaceHandler {
 
     @Postback(value = Payload.SHOW_FAV_PLACES)
     public void handleShowFavoritePlaces(User user) {
+        // When users open his places, check for update in user's Uber favorite places
+        // and update has_fav_place in DB
+        favoritePlaceService.updateUserHasPlaces(user);
         Optional<List<PlaceItem>> places = favoritePlaceService.getPlacesList(user);
         if (places.isPresent()) {
+
             List<TemplateElement> elements = messageService.getPlaceTemplates(places.get());
             Request maps = GenericTemplate.builder()
                     .user(user)

@@ -22,12 +22,23 @@ import static pack.constant.RideStatus.*;
 
 @Component
 public class Initialization {
-
-    @Autowired
-    private AppProperties appProperties;
-
     @Autowired
     Messenger messenger;
+
+    @PostConstruct
+    public void initMessengerProfile() {
+        messenger.setGetStartedButton(new GetStartedButton(Payload.START));
+        messenger.setGreeting(new Greeting(MessageText.BOT_GREETING));
+        PersistentMenu menu = new PersistentMenu(
+                Arrays.asList(
+                        new WebMenuItem("Get help", "https://help.uber.com/")));
+        messenger.setPersistentMenu(menu);
+    }
+
+    @Bean
+    public Gson getGson() {
+        return new Gson();
+    }
 
     // Bean with appropriate next ride statuses. (In order to prevent "in_progress" -> "arriving"
     @Bean(value = "nextRideStatusMap")
@@ -41,30 +52,4 @@ public class Initialization {
         map.put(COMPLETED, FINISHED);
         return map;
     }
-
-    @Bean
-    public Gson getGson() {
-        return new Gson();
-    }
-
-    @PostConstruct
-    public void initMessengerProfile() {
-        messenger.setGetStartedButton(new GetStartedButton(Payload.START));
-        messenger.setGreeting(new Greeting(MessageText.BOT_GREETING));
-        PersistentMenu menu = new PersistentMenu(
-                Arrays.asList(
-                        new WebMenuItem("Get help", "https://help.uber.com/"))
-        );
-        messenger.setPersistentMenu(menu);
-    }
-
-//    @PostConstruct
-//    public void updateWebhook() {
-//        System.out.println(BASE_URL);
-//        messenger.setWebHook("https://5230e671.ngrok.io" + "/messenger/events",
-//                Arrays.asList(
-//                        WebHook.Field.MESSAGES,
-//                        WebHook.Field.POSTBACKS
-//                ));
-//    }
 }

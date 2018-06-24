@@ -3,7 +3,6 @@ package pack.factory;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 
 public class CoordinatesFactory {
-
     public static Coordinates create(double lat, double lng) {
         Coordinates coords = new Coordinates();
         coords.setLatitude(lat);

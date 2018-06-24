@@ -15,15 +15,11 @@ import java.util.Optional;
 
 @Service
 public class WebhookService {
-
     @Autowired
     private UserService userService;
 
     @Autowired
     private UberRideDaoService uberRideDaoService;
-
-    @Autowired
-    private UberRideService uberRideService;
 
     @Autowired
     private FakeTripLogicService fakeTripLogicService;
@@ -59,23 +55,21 @@ public class WebhookService {
         uberRide.setStatus(rideStatus.getName());          // Set name from UberStatus enum
         uberRideDaoService.save(uberRide);                                        // Save UberRide
         userService.save(user, rideStatus.getUserState());  // Save user with new state
-
         switch (rideStatus) {
             case PROCESSING:
-                rideWebhookHandler.handleProcessing(user, uberRide);
+                rideWebhookHandler.handleProcessing(user);
                 break;
             case ACCEPTED:
-                rideWebhookHandler.handleAccepted(user, uberRide);
+                rideWebhookHandler.handleAccepted(user);
                 break;
             case ARRIVING:
-                rideWebhookHandler.handleArriving(user, uberRide);
+                rideWebhookHandler.handleArriving(user);
                 break;
             case IN_PROGRESS:
-                rideWebhookHandler.handleInProgress(user, uberRide);
+                rideWebhookHandler.handleInProgress(user);
                 break;
             case COMPLETED:
-                rideWebhookHandler.handleCompleted(user, uberRide);
-                break;
+                rideWebhookHandler.handleCompleted(user);
         }
     }
 

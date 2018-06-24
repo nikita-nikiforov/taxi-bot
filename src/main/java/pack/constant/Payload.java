@@ -2,7 +2,6 @@ package pack.constant;
 
 public class Payload {
     public static final String START = "START";
-    public static final String UBER_AUTH = "UBER_AUTH";
     public static final String MAKE_ORDER = "MAKE_ORDER";
     public static final String CONFIRM_START_POINT = "CONFIRM_START_POINT";
     public static final String DISCARD_START_POINT = "DISCARD_START_POINT";
@@ -20,4 +19,6 @@ public class Payload {
     public static final String CHOOSE_PLACE_TO_ADD = "CHOOSE_PLACE_TO_ADD";
     public static final String ADD_PLACE = "INPUT_FAV_PLACE";
     public static final String CANCEL_FAV_PLACE = "CANCEL_FAV_PLACE";
+    public static final String INPUT_MY_PLACES = "INPUT_MY_PLACES";
+    public static final String CHOOSE_FROM_PLACES = "CHOOSE_FROM_PLACES";
 }

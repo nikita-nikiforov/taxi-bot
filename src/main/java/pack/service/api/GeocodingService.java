@@ -16,7 +16,6 @@ import java.util.Optional;
 
 @Service
 public class GeocodingService {
-
     private GeoApiContext geoApiContext;
 
     @Autowired
@@ -50,10 +49,12 @@ public class GeocodingService {
         Optional<String> result = Optional.empty();                // to return
         LatLng latLng = new LatLng(coords.getLatitude(), coords.getLongitude());
         try {
+            // Search by address
             GeocodingResult[] geoResults = GeocodingApi.reverseGeocode(geoApiContext, latLng).await();
+            // If found, get the first result (the most detailed)
             if (geoResults.length > 0) {
                 GeocodingResult geoResult = geoResults[0];
-                String address = geoResult.formattedAddress;
+                String address = geoResult.formattedAddress;    // Get the formatted address
                 result = Optional.of(address);
             }
         } catch (ApiException | InterruptedException | IOException e) {

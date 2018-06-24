@@ -8,12 +8,10 @@ import pack.constant.State;
 import pack.dao.UserRepository;
 import pack.entity.UberRide;
 import pack.entity.User;
-
 import java.util.Optional;
 
 @Service
 public class UserService implements UserProvider {
-
     @Autowired
     private UserRepository userRepository;
 

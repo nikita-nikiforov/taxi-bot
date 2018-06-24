@@ -3,8 +3,11 @@ package pack.service;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
 import com.botscrew.messengercdk.model.outgoing.element.WebAction;
+import com.botscrew.messengercdk.model.outgoing.element.quickreply.PostbackQuickReply;
+import com.botscrew.messengercdk.model.outgoing.element.quickreply.QuickReply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pack.constant.Payload;
 import pack.entity.User;
 import pack.model.FareResponse;
 import pack.model.ReceiptResponse;
@@ -13,7 +16,6 @@ import pack.model.UberRideResponse.Vehicle;
 import pack.model.custom.HistoryItem;
 import pack.model.custom.PlaceItem;
 import pack.service.api.MapboxService;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -22,12 +24,14 @@ import java.util.List;
 
 @Service
 public class MessageService {
-
     @Autowired
     private MapboxService mapboxService;
 
     @Autowired
     private UberRideService uberRideService;
+
+    @Autowired
+    private FavoritePlaceService favoritePlaceService;
 
     public List<TemplateElement> getHistoryTemplateElements(List<HistoryItem> historyList) {
         List<TemplateElement> result = new ArrayList<>();
@@ -113,7 +117,6 @@ public class MessageService {
         return result;
     }
 
-
     public List<TemplateElement> getPlaceTemplates(List<PlaceItem> placeItems) {
         List<TemplateElement> result = new ArrayList<>();
 
@@ -145,5 +148,16 @@ public class MessageService {
                         .makeCompactWebView()
                         .build())
                 .build();
+    }
+
+    public List<QuickReply> getInputMyPlacesQuickReplies(User user, String inputType) {
+        List<QuickReply> result = new ArrayList<>();
+        List<PlaceItem> placesList = favoritePlaceService.getPlacesList(user).get();
+        placesList.forEach(placeItem -> {
+            result.add(new PostbackQuickReply(placeItem.getName(),
+                    Payload.CHOOSE_FROM_PLACES + "?input=" + inputType +
+            "?place=" + placeItem.getName()));
+        });
+        return result;
     }
 }

@@ -11,7 +11,6 @@ public class Order {
 
     private double startLat;
     private double startLong;
-
     private double endLat;
     private double endLong;
 

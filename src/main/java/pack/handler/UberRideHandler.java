@@ -17,13 +17,10 @@ import pack.constant.State;
 import pack.entity.User;
 import pack.service.MessageService;
 import pack.service.UberRideService;
-
 import java.util.Arrays;
-
 
 @ChatEventsProcessor
 public class UberRideHandler {
-
     @Autowired
     private Sender sender;
 
@@ -32,9 +29,6 @@ public class UberRideHandler {
 
     @Autowired
     private UberRideService uberRideService;
-
-    @Autowired
-    private RideWebhookHandler rideWebhookHandler;
 
     @Text(states = State.UBER_PROCESSING)
     public void handleUberProcessingText(User user) {

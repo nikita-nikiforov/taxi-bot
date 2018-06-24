@@ -14,7 +14,6 @@ import static pack.constant.RideStatus.COMPLETED;
 
 @Service
 public class FakeTripLogicService {
-
     @Autowired
     private UberApiService uberApiService;
 

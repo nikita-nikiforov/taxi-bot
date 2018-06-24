@@ -15,13 +15,11 @@ import pack.model.ProductItem;
 import pack.service.api.UberApiService;
 import pack.service.dao.OrderDaoService;
 import pack.service.dao.UberRideDaoService;
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class OrderService {
-
     @Autowired
     private OrderDaoService orderDaoService;
 
@@ -92,10 +90,5 @@ public class OrderService {
     public Coordinates getEndPointCoordinates(User user) {
         Order order = orderDaoService.getOrderByChatId(user.getChatId());
         return CoordinatesFactory.create(order.getEndLat(), order.getEndLong());
-    }
-
-    // TODO
-    public void stopTrip(User user) {
-        orderDaoService.removeByUser(user);
     }
 }

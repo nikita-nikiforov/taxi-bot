@@ -17,6 +17,5 @@ public class State {
     public static final String UBER_DRIVER_CANCELED = "UBER_DRIVER_CANCELED";
     public static final String UBER_RIDER_CANCELED = "UBER_RIDER_CANCELED";
     public static final String UBER_COMPLETED = "UBER_COMPLETED";
-
     public static final String INPUT_FAV_PLACE = "INPUT_FAV_PLACE";
 }

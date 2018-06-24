@@ -1,14 +1,12 @@
 package pack.handler;
 
-import com.botscrew.botframework.annotation.ChatEventsProcessor;
-import com.botscrew.botframework.annotation.Location;
-import com.botscrew.botframework.annotation.Postback;
-import com.botscrew.botframework.annotation.Text;
+import com.botscrew.botframework.annotation.*;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
-import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
+import com.botscrew.messengercdk.model.outgoing.element.quickreply.LocationQuickReply;
 import com.botscrew.messengercdk.model.outgoing.element.quickreply.PostbackQuickReply;
+import com.botscrew.messengercdk.model.outgoing.element.quickreply.QuickReply;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,29 +16,25 @@ import pack.constant.State;
 import pack.entity.User;
 import pack.model.FareResponse;
 import pack.model.ProductItem;
+import pack.model.custom.PlaceItem;
+import pack.service.FavoritePlaceService;
 import pack.service.MessageService;
 import pack.service.OrderService;
 import pack.service.UberRideService;
 import pack.service.api.GeocodingService;
-import pack.service.api.MapboxService;
-import pack.service.api.UberApiService;
 import pack.service.dao.OrderDaoService;
+import pack.service.dao.UberCredentialService;
 import pack.service.dao.UserService;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @ChatEventsProcessor
 public class OrderCreateHandler {
-
     @Autowired
     private UserService userService;
 
     @Autowired
     private Sender sender;
-
-    @Autowired
-    private UberApiService uberApiService;
 
     @Autowired
     private UberRideService uberRideService;
@@ -52,9 +46,6 @@ public class OrderCreateHandler {
     private OrderDaoService orderDaoService;
 
     @Autowired
-    private MapboxService mapboxService;
-
-    @Autowired
     private StartHandler startHandler;
 
     @Autowired
@@ -63,14 +54,26 @@ public class OrderCreateHandler {
     @Autowired
     private GeocodingService geocodingService;
 
+    @Autowired
+    private UberCredentialService uberCredentialService;
+
+    @Autowired
+    private FavoritePlaceService favoritePlaceService;
+
     @Postback(value = Payload.MAKE_ORDER, states = State.LOGGED)
     public void handleMakeOrder(User user) {
         userService.save(user.getChatId(), State.START_INPUT);      // Save user
+        // Create quickReplies (with choosing from "My places", if user has them)
+        List<QuickReply> quickReplies = new ArrayList<>(Arrays.asList(new LocationQuickReply()));
+        boolean userHasFavPlaces = uberCredentialService.getCredentialByChatId(user.getChatId()).isHas_fav_places();
+        if (userHasFavPlaces) {
+            quickReplies.add(new PostbackQuickReply("My places",
+                    Payload.INPUT_MY_PLACES + "?input=start"));
+        }
         Request request = QuickReplies.builder()
                 .user(user)
                 .text(MessageText.START_INPUT)
-//                .postback("My places", "SELECT_FROM_PLACES")
-                .location()
+                .quickReplies(quickReplies)
                 .build();
         sender.send(request);
     }
@@ -134,10 +137,17 @@ public class OrderCreateHandler {
         if (!productsNearBy.isEmpty()) {
             orderService.setStartPoint(user, coord);            // save start point
             userService.save(user, State.END_INPUT);            // user -> END_INPUT
+
+            // Create quickReplies (with choosing from "My places", if user has them)
+            List<QuickReply> quickReplies = new ArrayList<>(Arrays.asList(new LocationQuickReply()));
+            boolean userHasFavPlaces = uberCredentialService.getCredentialByChatId(user.getChatId()).isHas_fav_places();
+            if (userHasFavPlaces) quickReplies.add(new PostbackQuickReply("My places",
+                    Payload.INPUT_MY_PLACES + "?input=end"));
+
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.START_INPUT_TRUE)
-                    .location()
+                    .quickReplies(quickReplies)
                     .build();
         } else {                                    // If Uber has no products in the region
 //            userService.save(user, State.LOGGED);               // user -> LOGGED
@@ -230,14 +240,9 @@ public class OrderCreateHandler {
 
     @Postback(value = Payload.CONFIRM_ORDER)
     public void handleConfirmRide(User user) {
-        // Sends request to start UberTrip to Uber. If has started, then true
+        // Sends request to Uber to start UberTrip. If has started, then true
         if (uberRideService.confirmRide(user)) {
             userService.save(user, State.FARE_CONFIRMED);
-            Request request = TextMessage.builder()
-                    .user(user)
-                    .text(MessageText.FARE_CONFIRMED)
-                    .build();
-            sender.send(request);
         } else {
             // If ride failed to be started in Uber, then send a new estimate fare to user
             Optional<FareResponse> estimateFare = orderService.getEstimateFare(user);
@@ -252,14 +257,30 @@ public class OrderCreateHandler {
         }
     }
 
-//    @Text(states = State.FARE_CONFIRMATION)
-//    public void handleTextWhileConfirmation(User user) {
-//        Request request = QuickReplies.builder()
-//                .user(user)
-//                .text(MessageText.RETRY)
-//                .postback("Confirm", Payload.CONFIRM_ORDER)
-//                .postback("Discard", Payload.DISCARD_ORDER)
-//                .build();
-//        sender.send(request);
-//    }
+    @Postback(value = Payload.INPUT_MY_PLACES)
+    public void handleInputMyPlaces(User user, @PostbackParameters Map<String, String> params) {
+        String inputType = params.get("input");
+        List<QuickReply> quickReplies = messageService.getInputMyPlacesQuickReplies(user, inputType);
+        Request request = QuickReplies.builder()
+                .user(user)
+                .text(MessageText.CHOOSE_FROM_PLACES)
+                .quickReplies(quickReplies)
+                .build();
+        sender.send(request);
+    }
+
+    @Postback(value = Payload.CHOOSE_FROM_PLACES)
+    public void handleChooseFromPlaces(User user, @PostbackParameters Map<String, String> params) {
+        String input = params.get("input");
+        String place = params.get("place");
+        PlaceItem placeItem = favoritePlaceService.getPlaceItemById(user, place);
+        Coordinates coords = placeItem.getCoordinates();
+        switch (input) {
+            case "start":
+                handleStartInputLocation(user, coords);
+                break;
+            case "end":
+                handleEndLocation(user, coords);
+        }
+    }
 }

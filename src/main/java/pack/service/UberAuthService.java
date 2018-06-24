@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.entity.UberCredential;
 import pack.entity.User;
-import pack.init.AppProperties;
 import pack.model.UberAccessTokenResponse;
 import pack.model.UberUserProfile;
 import pack.service.api.UberApiService;
@@ -13,7 +12,6 @@ import pack.service.dao.UserService;
 
 @Service
 public class UberAuthService {
-
     @Autowired
     private UberCredentialService uberCredentialService;
 
@@ -24,7 +22,7 @@ public class UberAuthService {
     private UberApiService uberApiService;
 
     @Autowired
-    private AppProperties appProperties;
+    private FavoritePlaceService favoritePlaceService;
 
     // TODO
     public boolean authorizeUser(Long chatId, String code) {
@@ -35,15 +33,12 @@ public class UberAuthService {
         // Get access_token and set it
         myCredential.setAccess_token(accessTokenResponse.getAccess_token());
         myCredential.setUser(user);                       // Set user to credential
-        uberCredentialService.save(myCredential);         // Save 'cause the following .setUuid() need saved user in DB
-
+        uberCredentialService.save(myCredential);         // Save 'cause the following methods need saved user in DB
+        // Get user profile via /me and set uuid
         UberUserProfile uberUserProfile = uberApiService.aboutMe(user).get();
-        String uuid = uberUserProfile.getUuid();
-
-        myCredential.setUuid(uuid);
-
+        myCredential.setUuid(uberUserProfile.getUuid());
+        // If user has favorite places in Uber, then true
+        favoritePlaceService.getPlacesList(user).ifPresent(l -> myCredential.setHas_fav_places(true));
         return uberCredentialService.save(myCredential);               // Save
     }
-
-
 }

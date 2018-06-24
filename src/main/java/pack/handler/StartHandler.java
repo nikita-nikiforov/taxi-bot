@@ -6,7 +6,6 @@ import com.botscrew.botframework.annotation.Postback;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.model.outgoing.builder.ButtonTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
-import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
 import com.botscrew.messengercdk.model.outgoing.element.button.WebButton;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
@@ -20,7 +19,6 @@ import pack.service.dao.UserService;
 
 @ChatEventsProcessor
 public class StartHandler {
-
     @Autowired
     private UserService userService;
 
@@ -48,15 +46,6 @@ public class StartHandler {
         sender.send(request);
     }
 
-    // unused
-    public void failedToLogin(User user) {
-        Request request = TextMessage.builder()
-                .user(user)
-                .text(MessageText.LOGIN_FAILED)
-                .build();
-        sender.send(request);
-    }
-
     @Text(states = {State.LOGGED})
     @Location(states = State.LOGGED)
     @Postback(value = Payload.START)
@@ -66,7 +55,7 @@ public class StartHandler {
                 .text(MessageText.LOGGED)
                 .postback("Order a taxi", Payload.MAKE_ORDER)
                 .postback("History", Payload.SHOW_TRIPS)
-                .postback("Favorite places", Payload.SHOW_FAV_PLACES)
+                .postback("My places", Payload.SHOW_FAV_PLACES)
                 .build();
         sender.send(request);
     }

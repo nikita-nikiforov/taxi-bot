@@ -7,12 +7,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import pack.entity.User;
 import pack.service.dao.UberCredentialService;
-
 import java.util.Optional;
 
 @Service
 public class UberRestService {
-
     @Autowired
     private RestTemplateService restTemplateService;
 
