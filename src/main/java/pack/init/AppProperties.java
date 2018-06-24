@@ -29,6 +29,9 @@ public class AppProperties {
     @Value("${facebook.close-error-webview-url}")
     private String CLOSE_ERROR_WEBVIEW_URL;
 
+    @Value("${facebook-messenger-bot-link}")
+    private String M_ME_LINK;
+
     @Value("${mapbox.access-token}")
     private String MAPBOX_ACCESS_TOKEN;
 
@@ -73,5 +76,9 @@ public class AppProperties {
 
     public String getCLOSE_ERROR_WEBVIEW_URL() {
         return CLOSE_ERROR_WEBVIEW_URL;
+    }
+
+    public String getM_ME_LINK() {
+        return M_ME_LINK;
     }
 }
