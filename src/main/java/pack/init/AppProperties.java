@@ -23,8 +23,11 @@ public class AppProperties {
     @Value("${uber.client-id}")
     private String CLIENT_ID;
 
-    @Value("${facebook.close-webview-url}")
-    private String CLOSE_WEBVIEW_URL;
+    @Value("${facebook.close-success-webview-url}")
+    private String CLOSE_SUCCESS_WEBVIEW_URL;
+
+    @Value("${facebook.close-error-webview-url}")
+    private String CLOSE_ERROR_WEBVIEW_URL;
 
     @Value("${mapbox.access-token}")
     private String MAPBOX_ACCESS_TOKEN;
@@ -56,8 +59,8 @@ public class AppProperties {
         return CLIENT_ID;
     }
 
-    public String getCLOSE_WEBVIEW_URL() {
-        return CLOSE_WEBVIEW_URL;
+    public String getCLOSE_SUCCESS_WEBVIEW_URL() {
+        return CLOSE_SUCCESS_WEBVIEW_URL;
     }
 
     public String getMAPBOX_ACCESS_TOKEN() {
@@ -66,5 +69,9 @@ public class AppProperties {
 
     public String getMAP_ICON_URL() {
         return MAP_ICON_URL;
+    }
+
+    public String getCLOSE_ERROR_WEBVIEW_URL() {
+        return CLOSE_ERROR_WEBVIEW_URL;
     }
 }

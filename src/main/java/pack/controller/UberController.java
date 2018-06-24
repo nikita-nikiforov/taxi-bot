@@ -40,12 +40,12 @@ public class UberController {
     @Autowired
     private AppProperties appProperties;
 
-    @GetMapping("/uber-auth")
+    @GetMapping(value = "/uber-auth", params = {"code", "state"})
     public void getUberCode(@RequestParam("code") String code, @RequestParam("state") long chatId,
                               HttpServletResponse response) {
         User user = userService.getUserByChatId(chatId);        // Get user from DB
         // If user credentials is absent, then authorize
-        if(uberCredentialService.getCredentialByChatIdOptional(chatId).isPresent()){
+        if(!uberCredentialService.getCredentialByChatIdOptional(chatId).isPresent()){
             // If User's access token have been caught and saved, then true
             boolean success = uberAuthService.authorizeUser(chatId, code);
             if (success) {
@@ -56,7 +56,18 @@ public class UberController {
             }
         }
         try {
-            response.sendRedirect(appProperties.getCLOSE_WEBVIEW_URL());
+            response.sendRedirect(appProperties.getCLOSE_SUCCESS_WEBVIEW_URL());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // When user denied to give access to Uber
+    @GetMapping(value = "/uber-auth", params = {"error", "state"})
+    public void failedAuth(@RequestParam("error") String error, @RequestParam("state") long chatId,
+                            HttpServletResponse response) {
+        try {
+            response.sendRedirect(appProperties.getCLOSE_ERROR_WEBVIEW_URL());
         } catch (IOException e) {
             e.printStackTrace();
         }

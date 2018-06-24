@@ -1,10 +1,10 @@
 package pack.constant;
 
 public class MessageText {
-    public static final String BOT_GREETING = "Hello! I will help you order Uber taxi. Let's start!";
+    public static final String BOT_GREETING = "Hi! I will help you order Uber taxi. Let's start.";
     public static final String GET_STARTED_INITIAL = "Hi! Welcome to Taxi Bot. Firstly, authorize in Uber.";
     public static final String LOGIN_FAILED = "You failed to authorize. Please, try again.";
-    public static final String LOGGED = "What do you want to do now?";
+    public static final String LOGGED = "What do you want now?";
     public static final String START_INPUT = "Please, send the start location or write the address.";
     public static final String UBER_NO_PRODUCTS = "Uber has no service in this region. Another one start point?";
     public static final String DID_YOU_MEAN_THIS = "Did you mean this place?";
