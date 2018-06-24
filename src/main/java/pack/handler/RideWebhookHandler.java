@@ -14,7 +14,7 @@ import pack.service.OrderService;
 import pack.service.UberRideService;
 
 @Component
-public class RideStatusWebhookHandler {
+public class RideWebhookHandler {
 
     @Autowired
     private Sender sender;

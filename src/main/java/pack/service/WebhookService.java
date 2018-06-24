@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import pack.constant.RideStatus;
 import pack.entity.UberRide;
 import pack.entity.User;
-import pack.handler.RideStatusWebhookHandler;
+import pack.handler.RideWebhookHandler;
 import pack.model.StatusChangedResponse;
 import pack.service.dao.UberRideDaoService;
 import pack.service.dao.UserService;
@@ -29,7 +29,7 @@ public class WebhookService {
     private FakeTripLogicService fakeTripLogicService;
 
     @Autowired
-    private RideStatusWebhookHandler rideStatusWebhookHandler;
+    private RideWebhookHandler rideWebhookHandler;
 
     @Resource(name = "nextRideStatusMap")
     private Map<RideStatus, RideStatus> nextRideStatusMap;
@@ -62,19 +62,19 @@ public class WebhookService {
 
         switch (rideStatus) {
             case PROCESSING:
-                rideStatusWebhookHandler.handleProcessing(user, uberRide);
+                rideWebhookHandler.handleProcessing(user, uberRide);
                 break;
             case ACCEPTED:
-                rideStatusWebhookHandler.handleAccepted(user, uberRide);
+                rideWebhookHandler.handleAccepted(user, uberRide);
                 break;
             case ARRIVING:
-                rideStatusWebhookHandler.handleArriving(user, uberRide);
+                rideWebhookHandler.handleArriving(user, uberRide);
                 break;
             case IN_PROGRESS:
-                rideStatusWebhookHandler.handleInProgress(user, uberRide);
+                rideWebhookHandler.handleInProgress(user, uberRide);
                 break;
             case COMPLETED:
-                rideStatusWebhookHandler.handleCompleted(user, uberRide);
+                rideWebhookHandler.handleCompleted(user, uberRide);
                 break;
         }
     }

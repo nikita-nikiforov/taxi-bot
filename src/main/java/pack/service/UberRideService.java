@@ -10,7 +10,7 @@ import pack.constant.State;
 import pack.dao.UberRideRepository;
 import pack.entity.UberRide;
 import pack.entity.User;
-import pack.handler.RideStatusWebhookHandler;
+import pack.handler.RideWebhookHandler;
 import pack.model.ProductItem;
 import pack.model.ReceiptResponse;
 import pack.model.StatusChangedResponse;
@@ -50,7 +50,7 @@ public class UberRideService {
     private OrderDaoService orderDaoService;
 
     @Autowired
-    private RideStatusWebhookHandler rideStatusWebhookHandler;
+    private RideWebhookHandler rideWebhookHandler;
 
     @Autowired
     private Sender sender;
@@ -129,7 +129,7 @@ public class UberRideService {
         if (uberRide.isPresent() && "ready".equals(response.getMeta().getStatus())) {
             Optional<ReceiptResponse> receiptResponseOptional = uberApiService.getReceiptResponse(user, response);
             receiptResponseOptional.ifPresent(receiptResponse ->
-                    rideStatusWebhookHandler.handleReceipt(user, receiptResponse));
+                    rideWebhookHandler.handleReceipt(user, receiptResponse));
             orderDaoService.removeByUser(user);
             uberRideDaoService.removeByUser(user);
             userService.save(user, State.LOGGED);

@@ -1,6 +1,8 @@
 package pack.service;
 
+import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
+import com.botscrew.messengercdk.model.outgoing.element.WebAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.entity.User;
@@ -9,6 +11,7 @@ import pack.model.ReceiptResponse;
 import pack.model.UberRideResponse.Driver;
 import pack.model.UberRideResponse.Vehicle;
 import pack.model.custom.HistoryItem;
+import pack.model.custom.PlaceItem;
 import pack.service.api.MapboxService;
 
 import java.time.Instant;
@@ -108,5 +111,39 @@ public class MessageService {
                 + response.getDistance_label() + " \nDuration: " + response.getDuration()
                 + " \nFare: " + response.getTotal_charged();
         return result;
+    }
+
+
+    public List<TemplateElement> getPlaceTemplates(List<PlaceItem> placeItems) {
+        List<TemplateElement> result = new ArrayList<>();
+
+        placeItems.forEach(placeItem -> {
+            // Set title, subtitle and get url of markered map
+            String title = placeItem.getName();
+            String subtitle = placeItem.getAddress();
+            String mapImageUrl = mapboxService.getConfirmAddressMapUrl(placeItem.getCoordinates());
+
+            TemplateElement templateElement = getOpenableMapTemplate(placeItem.getCoordinates(), title);
+            templateElement.setTitle(title);
+            templateElement.setSubtitle(subtitle);
+            result.add(templateElement);                        // Add to result list
+        });
+        return result;
+    }
+
+    public TemplateElement getConfirmMapTemplate(Coordinates coords) {
+        TemplateElement templateELement = getOpenableMapTemplate(coords, "Found place");
+        templateELement.setTitle("Pinned Location");
+        return templateELement;
+    }
+
+    private TemplateElement getOpenableMapTemplate(Coordinates coords, String title) {
+        return TemplateElement.builder()
+                .imageUrl(mapboxService.getConfirmAddressMapUrl(coords))
+                .defaultAction(WebAction.builder()
+                        .url(mapboxService.getMarkeredMapUrl(coords, title))
+                        .makeCompactWebView()
+                        .build())
+                .build();
     }
 }

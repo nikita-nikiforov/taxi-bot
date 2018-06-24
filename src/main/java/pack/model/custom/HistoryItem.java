@@ -3,9 +3,10 @@ package pack.model.custom;
 import pack.model.HistoryResponse;
 import pack.model.ProductResponse;
 import pack.model.ReceiptResponse;
-
 import java.util.Optional;
 
+// Class extends History from HistoryResponse and add POJO fields
+// in addition to their String _id
 public class HistoryItem extends HistoryResponse.History {
     private ProductResponse.Product product;
     private Optional<ReceiptResponse> receipt;

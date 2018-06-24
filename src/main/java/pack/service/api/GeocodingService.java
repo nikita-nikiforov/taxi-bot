@@ -5,6 +5,7 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
+import com.google.maps.model.LatLng;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,23 @@ public class GeocodingService {
                 Coordinates coord = CoordinatesFactory.create(geoResult.geometry.location.lat,
                         geoResult.geometry.location.lng);
                 result = Optional.of(coord);
+            }
+        } catch (ApiException | InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Find text address by coordinates
+    public Optional<String> getAddressFromCoordinates(Coordinates coords) {
+        Optional<String> result = Optional.empty();                // to return
+        LatLng latLng = new LatLng(coords.getLatitude(), coords.getLongitude());
+        try {
+            GeocodingResult[] geoResults = GeocodingApi.reverseGeocode(geoApiContext, latLng).await();
+            if (geoResults.length > 0) {
+                GeocodingResult geoResult = geoResults[0];
+                String address = geoResult.formattedAddress;
+                result = Optional.of(address);
             }
         } catch (ApiException | InterruptedException | IOException e) {
             e.printStackTrace();

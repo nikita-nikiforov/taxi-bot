@@ -17,10 +17,11 @@ public class MapboxController {
 
     @GetMapping("/map")
     public String getMap(@RequestParam("lat") double lat, @RequestParam("lng") double lng,
-                         Model model) {
+                         @RequestParam("title") String title, Model model) {
         Coordinates coordinates = CoordinatesFactory.create(lat, lng);
         model.addAttribute("lat", lat);
         model.addAttribute("lng", lng);
+        model.addAttribute("title", title);
         return "map";
     }
 }

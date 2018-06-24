@@ -34,7 +34,7 @@ public class UberRideHandler {
     private UberRideService uberRideService;
 
     @Autowired
-    private RideStatusWebhookHandler rideStatusWebhookHandler;
+    private RideWebhookHandler rideWebhookHandler;
 
     @Text(states = State.UBER_PROCESSING)
     public void handleUberProcessingText(User user) {

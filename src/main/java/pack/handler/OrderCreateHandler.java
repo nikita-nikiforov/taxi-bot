@@ -8,8 +8,6 @@ import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
 import com.botscrew.messengercdk.model.outgoing.builder.TextMessage;
-import com.botscrew.messengercdk.model.outgoing.element.TemplateElement;
-import com.botscrew.messengercdk.model.outgoing.element.WebAction;
 import com.botscrew.messengercdk.model.outgoing.element.quickreply.PostbackQuickReply;
 import com.botscrew.messengercdk.model.outgoing.request.Request;
 import com.botscrew.messengercdk.service.Sender;
@@ -104,14 +102,7 @@ public class OrderCreateHandler {
                                     Coordinates coords) {
         Request mapView = GenericTemplate.builder()
                 .user(user)
-                .addElement(TemplateElement.builder()
-                        .title("Pinned Location")
-                        .imageUrl(mapboxService.getConfirmAddressMapUrl(coords))
-                        .defaultAction(WebAction.builder()
-                                .url(mapboxService.getMarkeredMapUrl(coords))
-                                .makeCompactWebView()
-                                .build())
-                        .build())
+                .addElement(messageService.getConfirmMapTemplate(coords))
                 .build();
         Request quickReplies = QuickReplies.builder()
                 .user(user)

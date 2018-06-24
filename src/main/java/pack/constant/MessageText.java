@@ -39,4 +39,7 @@ public class MessageText {
 
     public static final String RIDE_CANCELED = "Ride was canceled.";
 
+    public static final String CHOOSE_PLACE_TO_ADD = "What place you want to add?";
+
+    public static final String INPUT_FAV_PLACE = "Send the location or write the address.";
 }

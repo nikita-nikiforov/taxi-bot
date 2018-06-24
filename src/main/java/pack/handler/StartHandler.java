@@ -31,7 +31,7 @@ public class StartHandler {
     private Sender sender;
 
     @Text(states = State.INITIAL)
-    @Postback(value = Payload.GET_STARTED, states = State.INITIAL)
+    @Postback(value = Payload.START, states = State.INITIAL)
     public void handleGetStarted(User user) {
         userService.save(user.getChatId(), user.getState());
         String login_url = appProperties.getLOGIN_URL() + "&state=" + user.getChatId();
@@ -57,7 +57,7 @@ public class StartHandler {
         sender.send(request);
     }
 
-    @Postback(value = Payload.GET_STARTED)
+    @Postback(value = Payload.START)
     @Text(states = {State.LOGGED})
     @Location(states = State.LOGGED)
     public void handleLoggedState(User user) {

@@ -43,9 +43,9 @@ public class MapboxService {
                 iconUrl);
     }
 
-    public String getMarkeredMapUrl(Coordinates coordinates) {
+    public String getMarkeredMapUrl(Coordinates coordinates, String title) {
         double lat = coordinates.getLatitude();
         double lng = coordinates.getLongitude();
-        return appProperties.getBASE_URL() + "/map?lat=" + lat + "&lng=" + lng;
+        return appProperties.getBASE_URL() + "/map?lat=" + lat + "&lng=" + lng + "&title=" + title;
     }
 }

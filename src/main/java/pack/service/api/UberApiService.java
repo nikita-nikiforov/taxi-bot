@@ -223,12 +223,9 @@ public class UberApiService {
         return request;
     }
 
-    public Optional<Place> getFavoritePlace(String place) {
+    public Optional<Place> getFavoritePlace(User user, String place) {
         String url = "https://api.uber.com/v1.2/places/" + place;
-        Optional<Place> result;
-//        restTemplateService.getRequest()
-        return null;
-        // TODO
+        return uberRestService.getRequest(user, url, Place.class);
     }
 
     public ProductResponse.Product getProductById(User user, String product_id) {

@@ -49,7 +49,7 @@ public class Initialization {
 
     @PostConstruct
     public void initMessengerProfile() {
-        messenger.setGetStartedButton(new GetStartedButton(Payload.GET_STARTED));
+        messenger.setGetStartedButton(new GetStartedButton(Payload.START));
         messenger.setGreeting(new Greeting(MessageText.BOT_GREETING));
         PersistentMenu menu = new PersistentMenu(
                 Arrays.asList(

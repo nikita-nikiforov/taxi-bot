@@ -3,7 +3,7 @@
 <html>
     <head>
         <meta charset='utf-8' />
-        <title>Found place</title>
+        <title>${title}</title>
         <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
         <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.2/mapbox-gl.js'></script>
