@@ -194,6 +194,12 @@ public class OrderCreateHandler {
     @Location(states = {State.END_INPUT, State.END_TEXT_ASKED})
     public void handleEndLocation(User user, @Location Coordinates coord) {
         orderService.setEndPoint(user, coord);
+        sendEstimateFare(user);
+    }
+
+    @Text(states = State.FARE_CONFIRMATION)
+    @Location(states = State.FARE_CONFIRMATION)
+    public void sendEstimateFare(User user) {
         Optional<FareResponse> estimateFare = orderService.getEstimateFare(user);
         Request request;
         if (estimateFare.isPresent()) {
@@ -246,15 +252,14 @@ public class OrderCreateHandler {
         }
     }
 
-    @Location(states = State.FARE_CONFIRMATION)
-    @Text(states = State.FARE_CONFIRMATION)
-    public void handleTextWhileConfirmation(User user) {
-        Request request = QuickReplies.builder()
-                .user(user)
-                .text(MessageText.RETRY)
-                .postback("Confirm", Payload.CONFIRM_ORDER)
-                .postback("Discard", Payload.DISCARD_ORDER)
-                .build();
-        sender.send(request);
-    }
+//    @Text(states = State.FARE_CONFIRMATION)
+//    public void handleTextWhileConfirmation(User user) {
+//        Request request = QuickReplies.builder()
+//                .user(user)
+//                .text(MessageText.RETRY)
+//                .postback("Confirm", Payload.CONFIRM_ORDER)
+//                .postback("Discard", Payload.DISCARD_ORDER)
+//                .build();
+//        sender.send(request);
+//    }
 }

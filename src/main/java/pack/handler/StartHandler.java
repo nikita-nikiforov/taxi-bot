@@ -57,9 +57,9 @@ public class StartHandler {
         sender.send(request);
     }
 
-    @Postback(value = Payload.START)
     @Text(states = {State.LOGGED})
     @Location(states = State.LOGGED)
+    @Postback(value = Payload.START)
     public void handleLoggedState(User user) {
         Request request = QuickReplies.builder()
                 .user(user)

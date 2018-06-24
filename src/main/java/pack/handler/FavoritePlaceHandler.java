@@ -1,9 +1,6 @@
 package pack.handler;
 
-import com.botscrew.botframework.annotation.ChatEventsProcessor;
-import com.botscrew.botframework.annotation.Location;
-import com.botscrew.botframework.annotation.Postback;
-import com.botscrew.botframework.annotation.PostbackParameters;
+import com.botscrew.botframework.annotation.*;
 import com.botscrew.messengercdk.model.incomming.Coordinates;
 import com.botscrew.messengercdk.model.outgoing.builder.GenericTemplate;
 import com.botscrew.messengercdk.model.outgoing.builder.QuickReplies;
@@ -16,6 +13,7 @@ import pack.constant.MessageText;
 import pack.constant.Payload;
 import pack.constant.State;
 import pack.entity.User;
+import pack.model.Place;
 import pack.model.custom.PlaceItem;
 import pack.service.FavoritePlaceService;
 import pack.service.MessageService;
@@ -33,6 +31,9 @@ public class FavoritePlaceHandler {
     private FavoritePlaceService favoritePlaceService;
 
     @Autowired
+    private StartHandler startHandler;
+
+    @Autowired
     private MessageService messageService;
 
     @Autowired
@@ -46,18 +47,29 @@ public class FavoritePlaceHandler {
 
     @Postback(value = Payload.SHOW_FAV_PLACES)
     public void handleShowFavoritePlaces(User user) {
-        Optional<List<PlaceItem>> places = favoritePlaceService.getList(user);
+        Optional<List<PlaceItem>> places = favoritePlaceService.getPlacesList(user);
         if (places.isPresent()) {
             List<TemplateElement> elements = messageService.getPlaceTemplates(places.get());
-            Request request = GenericTemplate.builder()
+            Request maps = GenericTemplate.builder()
                     .user(user)
                     .elements(elements)
+                    .build();
+            Request quickReplies = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.FAV_PLACE_SHOWED + MessageText.WHATS_NEXT)
+                    .addQuickReply(new PostbackQuickReply("Add place", Payload.CHOOSE_PLACE_TO_ADD))
+                    .addQuickReply(new PostbackQuickReply("Back", Payload.START))
+                    .build();
+            sender.send(maps);
+            sender.send(quickReplies);
+        } else {
+            Request request = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.DONT_HAVE_PLACES)
                     .addQuickReply(new PostbackQuickReply("Add place", Payload.CHOOSE_PLACE_TO_ADD))
                     .addQuickReply(new PostbackQuickReply("Back", Payload.START))
                     .build();
             sender.send(request);
-        } else {
-            sender.send(user, "You don't have favorite places");
         }
     }
 
@@ -85,9 +97,45 @@ public class FavoritePlaceHandler {
     }
 
     @Location(states = State.INPUT_FAV_PLACE)
-    public void handleInputFavPlaceLocation(User user, @Location Coordinates coords) {
+    public void handleInputFavPlaceLocation(User user, @Location Coordinates coords,
+                                            @StateParameters Map<String, String> stateParams) {
         Optional<String> address = geocodingService.getAddressFromCoordinates(coords);
-        sender.send(user, address.get());
+        if (address.isPresent()) {
+            handleInputFavPlaceText(user, address.get(), stateParams);
+        } else {
+            Request request = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.CANT_FIND_ADDRESS_BY_LOCATION)
+                    .location()
+                    .addQuickReply(new PostbackQuickReply("Cancel", Payload.CANCEL_FAV_PLACE))
+                    .build();
+            sender.send(request);
+        }
+
     }
 
+    @Text(states = State.INPUT_FAV_PLACE)
+    public void handleInputFavPlaceText(User user, @Text String address,
+                                        @StateParameters Map<String, String> stateParams) {
+        String id = stateParams.get("id");
+        Optional<Place> place = favoritePlaceService.updatePlace(user, id, address);
+        if (place.isPresent()) {
+            userService.save(user, State.LOGGED);
+            sender.send(user, MessageText.FAV_PLACE_ADDED);
+            handleShowFavoritePlaces(user);
+        } else {
+            Request request = QuickReplies.builder()
+                    .user(user)
+                    .text(MessageText.UBER_CANT_FIND)
+                    .location()
+                    .build();
+            sender.send(request);
+        }
+    }
+
+    @Postback(value = Payload.CANCEL_FAV_PLACE)
+    public void habdleLoggedState(User user) {
+        userService.save(user, State.LOGGED);
+        startHandler.handleLoggedState(user);
+    }
 }

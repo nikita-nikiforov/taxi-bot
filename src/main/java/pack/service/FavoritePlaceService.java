@@ -21,7 +21,7 @@ public class FavoritePlaceService {
     private GeocodingService geocodingService;
 
     // Get Optional of favorite places list
-    public Optional<List<PlaceItem>> getList(User user) {
+    public Optional<List<PlaceItem>> getPlacesList(User user) {
         Optional<List<PlaceItem>> result = Optional.empty();        // To be returned
         Map<String, Place> map = new HashMap<>();                   // Map for found places
         // If user has places, put them to map
@@ -39,5 +39,9 @@ public class FavoritePlaceService {
             result = Optional.of(resultList);                   // Set to Optional
         }
         return result;
+    }
+
+    public Optional<Place> updatePlace(User user, String id, String address) {
+        return uberApiService.putPlace(user, id, address);
     }
 }

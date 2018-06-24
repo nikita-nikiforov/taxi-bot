@@ -19,4 +19,5 @@ public class Payload {
     public static final String SHOW_FAV_PLACES = "SHOW_FAV_PLACES";
     public static final String CHOOSE_PLACE_TO_ADD = "CHOOSE_PLACE_TO_ADD";
     public static final String ADD_PLACE = "INPUT_FAV_PLACE";
+    public static final String CANCEL_FAV_PLACE = "CANCEL_FAV_PLACE";
 }

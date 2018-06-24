@@ -9,6 +9,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pack.dao.UberRideRepository;
@@ -19,11 +20,11 @@ import pack.init.AppProperties;
 import pack.model.*;
 import pack.model.HistoryResponse.History;
 import pack.service.OrderService;
+import pack.service.UberRideService;
 import pack.service.dao.OrderDaoService;
 import pack.service.dao.UberCredentialService;
-import pack.service.UberRideService;
-import pack.service.dao.UserService;
 import pack.service.dao.UberRideDaoService;
+import pack.service.dao.UserService;
 
 import java.util.*;
 
@@ -232,5 +233,17 @@ public class UberApiService {
         String url = "https://api.uber.com/v1.2/products/" + product_id;
         Optional<ProductResponse.Product> request = uberRestService.getRequest(user, url, ProductResponse.Product.class);
         return request.get();
+    }
+
+    public Optional<Place> putPlace(User user, String id, String address) {
+        Optional<Place> result;
+        String url = "https://api.uber.com/v1.2/places/" + id;
+        Place requetBody = new Place(address);
+        try {
+            result = uberRestService.putRequest(user, url, requetBody, Place.class);
+        } catch (HttpClientErrorException e) {          // Catch HttpClientErrorException: 422 Unprocessable Entity,
+            result = Optional.empty();                  // when user inputs wrong address
+        }
+        return result;
     }
 }

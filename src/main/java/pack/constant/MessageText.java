@@ -22,7 +22,7 @@ public class MessageText {
             "            \"write to me. Have a nice day :)";
     public static final String FAV_PLACE_INPUT_MAP = "Select the place you want to setStartPoint.";
     public static final String FAV_PLACE_INPUT_NAME = "Enter the name of this place.";
-    public static final String FAV_PLACE_ADDED = "The place was saved!";
+    public static final String FAV_PLACE_ADDED = "The place was saved.";
 
     public static final String UBER_PROCESSING = "Your request is processing now. Wait for driver " +
             "acceptance.";
@@ -42,4 +42,9 @@ public class MessageText {
     public static final String CHOOSE_PLACE_TO_ADD = "What place you want to add?";
 
     public static final String INPUT_FAV_PLACE = "Send the location or write the address.";
+    public static final String FAV_PLACE_SHOWED = "Here's your favorite places. ";
+    public static final String WHATS_NEXT = "What's next?";
+    public static final String DONT_HAVE_PLACES = "You don't have favorite places.";
+    public static final String CANT_FIND_ADDRESS_BY_LOCATION = "Can't get the address of this place, try again :)";
+    public static final String UBER_CANT_FIND = "Can't find this place. Try again :)";
 }
