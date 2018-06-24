@@ -6,6 +6,8 @@ import pack.dao.UberCredentialRepository;
 import pack.entity.UberCredential;
 import pack.entity.User;
 
+import java.util.Optional;
+
 @Service
 public class UberCredentialService {
     @Autowired
@@ -13,6 +15,13 @@ public class UberCredentialService {
 
     public UberCredential getCredentialByChatId(long chatId) {
         return uberCredentialRepository.findByUserChatId(chatId);
+    }
+
+    public Optional<UberCredential> getCredentialByChatIdOptional(long chatId) {
+        Optional<UberCredential> result = Optional.empty();
+        UberCredential credential = getCredentialByChatId(chatId);
+        if(credential != null) result = Optional.of(credential);
+        return result;
     }
 
     public boolean save(UberCredential uberCredential) {

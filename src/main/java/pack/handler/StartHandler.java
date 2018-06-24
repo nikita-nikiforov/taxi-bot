@@ -41,7 +41,7 @@ public class StartHandler {
                         .url(login_url)
                         .makeTallWebView()
                         .build())
-                .addButton(new WebButton("Log out", appProperties.getLOGOUT_URL()))
+//                .addButton(new WebButton("Log out", appProperties.getLOGOUT_URL()))
                 .build();
         sender.send(request);
     }
