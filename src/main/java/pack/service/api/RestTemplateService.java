@@ -61,10 +61,4 @@ public class RestTemplateService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.exchange(url, HttpMethod.DELETE, httpEntity, Object.class);
     }
-
-
-
-
-
-
 }

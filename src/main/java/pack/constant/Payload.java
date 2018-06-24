@@ -16,4 +16,5 @@ public class Payload {
     public static final String FARE_DETAILS = "FARE_DETAILS";
     public static final String CONFIRM_RIDE_CANCEL = "CONFIRM_RIDE_CANCEL";
     public static final String DISCARD_RIDE_CANCEL = "DISCARD_RIDE_CANCEL";
+    public static final String SHOW_FAV_PLACES = "SHOW_FAV_PLACES";
 }

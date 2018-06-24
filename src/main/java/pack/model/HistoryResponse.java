@@ -6,25 +6,25 @@ public class HistoryResponse {
     private History[] history;
 
     public static class History {
-        private String status;
-        private String distance;
-        private String product_id;
-        private String start_time;
-        private StartCity start_city;
-        private String end_time;
-        private String request_id;
-        private String request_time;
+        protected String status;
+        protected double distance;
+        protected String product_id;
+        protected long start_time;
+        protected StartCity start_city;
+        protected long end_time;
+        protected String request_id;
+        protected long request_time;
 
         public class StartCity {
-            private String latitude;
+            private double latitude;
             private String display_name;
-            private String longitude;
+            private double longitude;
 
-            public String getLatitude() {
+            public double getLatitude() {
                 return latitude;
             }
 
-            public void setLatitude(String latitude) {
+            public void setLatitude(double latitude) {
                 this.latitude = latitude;
             }
 
@@ -36,11 +36,11 @@ public class HistoryResponse {
                 this.display_name = display_name;
             }
 
-            public String getLongitude() {
+            public double getLongitude() {
                 return longitude;
             }
 
-            public void setLongitude(String longitude) {
+            public void setLongitude(double longitude) {
                 this.longitude = longitude;
             }
         }
@@ -56,11 +56,11 @@ public class HistoryResponse {
             this.status = status;
         }
 
-        public String getDistance() {
+        public double getDistance() {
             return distance;
         }
 
-        public void setDistance(String distance) {
+        public void setDistance(double distance) {
             this.distance = distance;
         }
 
@@ -72,11 +72,11 @@ public class HistoryResponse {
             this.product_id = product_id;
         }
 
-        public String getStart_time() {
+        public long getStart_time() {
             return start_time;
         }
 
-        public void setStart_time(String start_time) {
+        public void setStart_time(long start_time) {
             this.start_time = start_time;
         }
 
@@ -84,15 +84,15 @@ public class HistoryResponse {
             return start_city;
         }
 
-        public void setStart_city(StartCity start_Start_city) {
-            this.start_city = start_Start_city;
+        public void setStart_city(StartCity start_city) {
+            this.start_city = start_city;
         }
 
-        public String getEnd_time() {
+        public long getEnd_time() {
             return end_time;
         }
 
-        public void setEnd_time(String end_time) {
+        public void setEnd_time(long end_time) {
             this.end_time = end_time;
         }
 
@@ -104,11 +104,11 @@ public class HistoryResponse {
             this.request_id = request_id;
         }
 
-        public String getRequest_time() {
+        public long getRequest_time() {
             return request_time;
         }
 
-        public void setRequest_time(String request_time) {
+        public void setRequest_time(long request_time) {
             this.request_time = request_time;
         }
     }

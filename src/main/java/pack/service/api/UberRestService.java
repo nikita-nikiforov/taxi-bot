@@ -52,7 +52,7 @@ public class UberRestService {
     public void deleteRequest(User user, String url) {
         HttpHeaders headers = getAccessTokenedHeaders(user);        // Get access-tokened headers
         HttpEntity<String> entity = new HttpEntity<>(headers);      // Create entity
-        restTemplateService.deleteRequest(url, entity);                                 // Make request
+        restTemplateService.deleteRequest(url, entity);             // Make request
     }
 
     // To obtain request headers with user's Bearer token

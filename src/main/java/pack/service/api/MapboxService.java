@@ -16,10 +16,10 @@ public class MapboxService {
     private AppProperties appProperties;
 
     public String getHistoryMapUrl(History historyItem) {
-        String lat = historyItem.getStart_city().getLatitude();
-        String lng = historyItem.getStart_city().getLongitude();
+        String lat = String.valueOf(historyItem.getStart_city().getLatitude());     // Set latitude
+        String lng = String.valueOf(historyItem.getStart_city().getLongitude());    // Set longitude
         StringBuilder result = new StringBuilder();
-        result.append("https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/")
+        result.append("https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/")    // Build link
                 .append(lng).append(",").append(lat)
                 .append(",9,0,0/300x200?access_token=")
                 .append(appProperties.getMAPBOX_ACCESS_TOKEN());

@@ -65,7 +65,8 @@ public class StartHandler {
                 .user(user)
                 .text(MessageText.LOGGED)
                 .postback("Order a taxi", Payload.MAKE_ORDER)
-                .postback("Show last trips", Payload.SHOW_TRIPS)
+                .postback("History", Payload.SHOW_TRIPS)
+                .postback("Favorite places", Payload.SHOW_FAV_PLACES)
                 .build();
         sender.send(request);
     }

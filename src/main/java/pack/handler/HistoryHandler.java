@@ -9,11 +9,9 @@ import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import pack.constant.Payload;
 import pack.entity.User;
-import pack.init.AppProperties;
-import pack.model.HistoryResponse.History;
+import pack.model.custom.HistoryItem;
+import pack.service.HistoryService;
 import pack.service.MessageService;
-import pack.service.api.UberApiService;
-import pack.service.dao.UserService;
 
 import java.util.List;
 
@@ -21,16 +19,10 @@ import java.util.List;
 public class HistoryHandler {
 
     @Autowired
-    private AppProperties appProperties;
-
-    @Autowired
     private Sender sender;
 
     @Autowired
-    private UberApiService uberApiService;
-
-    @Autowired
-    private UserService userService;
+    private HistoryService historyService;
 
     @Autowired
     private MessageService messageService;
@@ -39,13 +31,14 @@ public class HistoryHandler {
     private StartHandler startHandler;
 
     @Postback(value = Payload.SHOW_TRIPS)
-    public void showTrips(User user) {
-        List<History> list = uberApiService.getHistoryList(user);
+    public void handleShowHistory(User user) {
+        List<HistoryItem> list = historyService.getHistoryItemList(user);           // Get History items
+        // Pass them to messageService to get TemplateElements
         List<TemplateElement> templateElements = messageService.getHistoryTemplateElements(list);
 
         Request request = GenericTemplate.builder()
-                .elements(templateElements)
                 .user(user)
+                .elements(templateElements)
                 .build();
         sender.send(request);
         startHandler.handleLoggedState(user);

@@ -5,13 +5,13 @@ public class ProductResponse {
     private Product[] products;
 
     public static class Product {
-        private String upfront_fare_enabled;
-        private String capacity;
+        private boolean upfront_fare_enabled;
+        private int capacity;
         private String product_id;
         private PriceDetails price_details;
         private String image;
-        private String cash_enabled;
-        private String shared;
+        private boolean cash_enabled;
+        private boolean shared;
         private String short_description;
         private String display_name;
         private String product_group;
@@ -20,29 +20,50 @@ public class ProductResponse {
         public Product() {
         }
 
-        public class PriceDetails {
-            private String[] service_fees;
-            private String cost_per_minute;
+        public static class PriceDetails {
+            private ServiceFees[] service_fees;
+            private double cost_per_minute;
             private String distance_unit;
-            private String minimum;
-            private String cost_per_distance;
-            private String base;
-            private String cancellation_fee;
+            private double minimum;
+            private double cost_per_distance;
+            private int base;
+            private int cancellation_fee;
             private String currency_code;
 
-            public String[] getService_fees() {
+            public static class ServiceFees {
+                private double fee;
+                private String name;
+
+                public double getFee() {
+                    return fee;
+                }
+
+                public void setFee(double fee) {
+                    this.fee = fee;
+                }
+
+                public String getName() {
+                    return name;
+                }
+
+                public void setName(String name) {
+                    this.name = name;
+                }
+            }
+
+            public ServiceFees[] getService_fees() {
                 return service_fees;
             }
 
-            public void setService_fees(String[] service_fees) {
+            public void setService_fees(ServiceFees[] service_fees) {
                 this.service_fees = service_fees;
             }
 
-            public String getCost_per_minute() {
+            public double getCost_per_minute() {
                 return cost_per_minute;
             }
 
-            public void setCost_per_minute(String cost_per_minute) {
+            public void setCost_per_minute(double cost_per_minute) {
                 this.cost_per_minute = cost_per_minute;
             }
 
@@ -54,35 +75,35 @@ public class ProductResponse {
                 this.distance_unit = distance_unit;
             }
 
-            public String getMinimum() {
+            public double getMinimum() {
                 return minimum;
             }
 
-            public void setMinimum(String minimum) {
+            public void setMinimum(double minimum) {
                 this.minimum = minimum;
             }
 
-            public String getCost_per_distance() {
+            public double getCost_per_distance() {
                 return cost_per_distance;
             }
 
-            public void setCost_per_distance(String cost_per_distance) {
+            public void setCost_per_distance(double cost_per_distance) {
                 this.cost_per_distance = cost_per_distance;
             }
 
-            public String getBase() {
+            public int getBase() {
                 return base;
             }
 
-            public void setBase(String base) {
+            public void setBase(int base) {
                 this.base = base;
             }
 
-            public String getCancellation_fee() {
+            public int getCancellation_fee() {
                 return cancellation_fee;
             }
 
-            public void setCancellation_fee(String cancellation_fee) {
+            public void setCancellation_fee(int cancellation_fee) {
                 this.cancellation_fee = cancellation_fee;
             }
 
@@ -95,19 +116,19 @@ public class ProductResponse {
             }
         }
 
-        public String getUpfront_fare_enabled() {
+        public boolean isUpfront_fare_enabled() {
             return upfront_fare_enabled;
         }
 
-        public void setUpfront_fare_enabled(String upfront_fare_enabled) {
+        public void setUpfront_fare_enabled(boolean upfront_fare_enabled) {
             this.upfront_fare_enabled = upfront_fare_enabled;
         }
 
-        public String getCapacity() {
+        public int getCapacity() {
             return capacity;
         }
 
-        public void setCapacity(String capacity) {
+        public void setCapacity(int capacity) {
             this.capacity = capacity;
         }
 
@@ -135,19 +156,19 @@ public class ProductResponse {
             this.image = image;
         }
 
-        public String getCash_enabled() {
+        public boolean isCash_enabled() {
             return cash_enabled;
         }
 
-        public void setCash_enabled(String cash_enabled) {
+        public void setCash_enabled(boolean cash_enabled) {
             this.cash_enabled = cash_enabled;
         }
 
-        public String getShared() {
+        public boolean isShared() {
             return shared;
         }
 
-        public void setShared(String shared) {
+        public void setShared(boolean shared) {
             this.shared = shared;
         }
 
@@ -182,13 +203,5 @@ public class ProductResponse {
         public void setDescription(String description) {
             this.description = description;
         }
-    }
-
-    public Product[] getProducts() {
-        return products;
-    }
-
-    public void setProducts(Product[] products) {
-        this.products = products;
     }
 }

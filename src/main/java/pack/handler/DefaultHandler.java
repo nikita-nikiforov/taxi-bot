@@ -5,14 +5,9 @@ import com.botscrew.botframework.annotation.Location;
 import com.botscrew.botframework.annotation.Text;
 import com.botscrew.messengercdk.service.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
-import pack.dao.OrderRepository;
-import pack.dao.UberCredentialRepository;
-import pack.dao.UberRideRepository;
-import pack.dao.UserRepository;
 import pack.entity.User;
 import pack.service.OrderService;
 import pack.service.dao.UserService;
-import pack.service.api.UberApiService;
 
 @ChatEventsProcessor
 public class DefaultHandler {
@@ -27,22 +22,7 @@ public class DefaultHandler {
     private StartHandler startHandler;
 
     @Autowired
-    private UberApiService uberApiService;
-
-    @Autowired
     private Sender sender;
-
-    @Autowired
-    UberRideRepository uberRideRepository;
-
-    @Autowired
-    OrderRepository orderRepository;
-
-    @Autowired
-    UberCredentialRepository uberCredentialRepository;
-
-    @Autowired
-    UserRepository userRepository;
 
     @Text
     public void handleText(User user, @Text String text) {
@@ -60,8 +40,7 @@ public class DefaultHandler {
     }
 
     @Location
-    public void handleStandart(User user) {
+    public void handleDefaultLocation(User user) {
         sender.send(user, "Can't understand you.");
     }
-
 }

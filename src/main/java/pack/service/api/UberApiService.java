@@ -183,6 +183,11 @@ public class UberApiService {
         uberRestService.deleteRequest(user, url);
     }
 
+    public Optional<ReceiptResponse> getReceiptResponse(User user, String requestId) {
+        String url = "https://api.uber.com/v1/requests/" + requestId + "/receipt";
+        return uberRestService.getRequest(user, url, ReceiptResponse.class);
+    }
+
     public Optional<ReceiptResponse> getReceiptResponse(User user, StatusChangedResponse statusChangedResponse) {
         String url = statusChangedResponse.getResource_href();
         return uberRestService.getRequest(user, url, ReceiptResponse.class);
@@ -216,5 +221,19 @@ public class UberApiService {
         request.add("redirect_uri", appProperties.getLOGIN_REDIRECT_URL());
         request.add("code", code);
         return request;
+    }
+
+    public Optional<Place> getFavoritePlace(String place) {
+        String url = "https://api.uber.com/v1.2/places/" + place;
+        Optional<Place> result;
+//        restTemplateService.getRequest()
+        return null;
+        // TODO
+    }
+
+    public ProductResponse.Product getProductById(User user, String product_id) {
+        String url = "https://api.uber.com/v1.2/products/" + product_id;
+        Optional<ProductResponse.Product> request = uberRestService.getRequest(user, url, ProductResponse.Product.class);
+        return request.get();
     }
 }

@@ -1,5 +1,6 @@
 package pack.model;
 
+// TODO CHANGE IN ProductResponse.Product
 public class ProductItem {
 
     private String upfront_fare_enabled;

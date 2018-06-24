@@ -5,9 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.entity.User;
 import pack.model.FareResponse;
-import pack.model.HistoryResponse.History;
 import pack.model.ReceiptResponse;
-import pack.model.UberRideResponse.*;
+import pack.model.UberRideResponse.Driver;
+import pack.model.UberRideResponse.Vehicle;
+import pack.model.custom.HistoryItem;
 import pack.service.api.MapboxService;
 
 import java.time.Instant;
@@ -25,11 +26,11 @@ public class MessageService {
     @Autowired
     private UberRideService uberRideService;
 
-    public List<TemplateElement> getHistoryTemplateElements(List<History> historyList) {
+    public List<TemplateElement> getHistoryTemplateElements(List<HistoryItem> historyList) {
         List<TemplateElement> result = new ArrayList<>();
 
         // Iterate over Histories from response and transform to TemplateElement
-        for (History history : historyList) {
+        for (HistoryItem history : historyList) {
             // Start LocalDateTime transformed from UNIX timestamp
             LocalDateTime startLocalDateTime = Instant.ofEpochSecond(Long.valueOf(history.getStart_time()))
                     .atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -37,14 +38,18 @@ public class MessageService {
             LocalDateTime endLocalDateTime = Instant.ofEpochSecond(Long.valueOf(history.getEnd_time()))
                     .atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-            String distanse = history.getDistance().substring(0, 4) + " km";       // Distanse
+            String distanse = String.valueOf(history.getDistance()).substring(0, 4) + " km";       // Distanse
             String date = endLocalDateTime.toLocalDate().toString();                    // Date
             String startTimeString = startLocalDateTime.toLocalTime().toString();       // Start time
             String endTimeString = endLocalDateTime.toLocalTime().toString();           // End time
+            String productName = history.getProduct().getDisplay_name();                // Get product name (e.g. "UberX")
+            StringBuilder fare = new StringBuilder();
+            // Fare can be absent because of Uber privacy rules
+            history.getReceipt().ifPresent(r -> fare.append("\nFare: ").append(r.getTotal_fare()));
 
-            String title = history.getStart_city().getDisplay_name();                   // Title
-            String subtitle = distanse + "\n" +
-                  date + " " + startTimeString + " — " + endTimeString;                 // Subtitle
+            String title = history.getStart_city().getDisplay_name() + ", " + productName;       // Title
+            String subtitle = date + "\n" + startTimeString + " — " + endTimeString +
+                    "\nDistance: " + distanse + fare;                                           // Subtitle
             String mapImageUrl = mapboxService.getHistoryMapUrl(history);       // Image of map
 
             TemplateElement templateElement = TemplateElement.builder()
