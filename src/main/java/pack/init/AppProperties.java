@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AppProperties {
-    @Value("${ngrok.url}")
+    @Value("${heroku.url}")
     private String BASE_URL;
 
     @Value("${uber.login-url}")
