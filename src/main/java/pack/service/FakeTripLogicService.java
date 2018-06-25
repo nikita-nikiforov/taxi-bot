@@ -21,7 +21,7 @@ public class FakeTripLogicService {
     void updateRideStatus(User user, RideStatus currentStatus) {
         try {
             // Sleep for some random time
-            TimeUnit.SECONDS.sleep(new SplittableRandom().nextInt(60, 90));
+            TimeUnit.SECONDS.sleep(new SplittableRandom().nextInt(30, 45));
             // If not COMPLETED, make putRequest to update to the next status.
             // (Because when COMPLETED is recieved, Uber removes the trip.
             // So, COMPLETED indicates that there's nothing to update)
