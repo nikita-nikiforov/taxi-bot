@@ -1,0 +1,19 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.marker {
+    background-image: url("https://image.ibb.co/dG4Djo/32_32_89fdce5084dbe77556cf99f7b22ae7e8_pin.png");
+    background-size: cover;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
