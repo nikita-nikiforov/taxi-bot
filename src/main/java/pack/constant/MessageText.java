@@ -14,7 +14,7 @@ public class MessageText {
     public static final String END_ERROR = "We can't ride you here. Try another destination.";
     public static final String PLACE_NOT_FOUND = "Can't find this place. Write it more precisely " +
             "or just send the location.";
-    public static final String FARE_ERROR = "The estimate fare has become obsolete. Here's a new one:";
+    public static final String FARE_ERROR = "Something went wrong. Here's a new estimate fare:";
     public static final String FAV_PLACE_ADDED = "The place was saved.";
 
     public static final String UBER_PROCESSING = "Your request is processing now. Wait for driver " +
