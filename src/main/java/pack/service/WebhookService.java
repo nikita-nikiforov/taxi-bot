@@ -3,10 +3,14 @@ package pack.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pack.constant.RideStatus;
+import pack.constant.State;
 import pack.entity.UberRide;
 import pack.entity.User;
 import pack.handler.RideWebhookHandler;
+import pack.model.ReceiptResponse;
 import pack.model.StatusChangedResponse;
+import pack.service.api.UberApiService;
+import pack.service.dao.OrderDaoService;
 import pack.service.dao.UberRideDaoService;
 import pack.service.dao.UserService;
 import javax.annotation.Resource;
@@ -26,6 +30,12 @@ public class WebhookService {
 
     @Autowired
     private RideWebhookHandler rideWebhookHandler;
+
+    @Autowired
+    private UberApiService uberApiService;
+
+    @Autowired
+    private OrderDaoService orderDaoService;
 
     @Resource(name = "nextRideStatusMap")
     private Map<RideStatus, RideStatus> nextRideStatusMap;
@@ -48,6 +58,22 @@ public class WebhookService {
                 fakeTripLogicService.updateRideStatus(user, updatedRideStatus);             // Call fake logic status changing
             }
         });
+    }
+
+    //* When receive "requests.receipt_ready"" on webhook.
+    public void handleReceiptWebhook(StatusChangedResponse response) {
+        User user = userService.getByUuid(response.getMeta().getUser_id());     // Get user by uuid from response
+        String requestId = response.getMeta().getResource_id();                 // Get requestId
+        Optional<UberRide> uberRide = uberRideDaoService.getByRequestId(requestId);                // Get uberRide by request
+        // Check if UberRide is present and if the status of new event is "ready"
+        if (uberRide.isPresent() && "ready".equals(response.getMeta().getStatus())) {
+            Optional<ReceiptResponse> receiptResponseOptional = uberApiService.getReceiptResponse(user, response);
+            receiptResponseOptional.ifPresent(receiptResponse ->
+                    rideWebhookHandler.handleReceipt(user, receiptResponse));
+            orderDaoService.removeByUser(user);
+            uberRideDaoService.removeByUser(user);
+            userService.save(user, State.LOGGED);
+        }
     }
 
     // Handles status changing and delegates to appropriate methods

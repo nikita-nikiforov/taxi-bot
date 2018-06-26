@@ -1,14 +1,11 @@
 package pack.service.api;
 
-import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import pack.service.dao.UberCredentialService;
 
 import java.util.Optional;
 
@@ -18,12 +15,6 @@ import java.util.Optional;
 
 @Service
 public class RestTemplateService {
-
-    @Autowired
-    private UberCredentialService uberCredentialService;
-
-    @Autowired
-    private Gson gson;
 
     public <T> Optional<T> getRequest(String url, HttpEntity<?> entity, Class<T> clazz) {
         Optional<T> result;                                     // to be returned

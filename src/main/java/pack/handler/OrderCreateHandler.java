@@ -150,7 +150,6 @@ public class OrderCreateHandler {
                     .quickReplies(quickReplies)
                     .build();
         } else {                                    // If Uber has no products in the region
-//            userService.save(user, State.LOGGED);               // user -> LOGGED
             request = QuickReplies.builder()
                     .user(user)
                     .text(MessageText.UBER_NO_PRODUCTS)
@@ -210,13 +209,14 @@ public class OrderCreateHandler {
     @Text(states = State.FARE_CONFIRMATION)
     @Location(states = State.FARE_CONFIRMATION)
     public void sendEstimateFare(User user) {
+        // Get estimate fare
         Optional<FareResponse> estimateFare = orderService.getEstimateFare(user);
         Request request;
         if (estimateFare.isPresent()) {
             userService.save(user, State.FARE_CONFIRMATION);
             request = QuickReplies.builder()
                     .user(user)
-                    .text(messageService.getTripEstimate(estimateFare.get()))
+                    .text(messageService.getTripEstimate(estimateFare.get()))   // Get message with estimate fare
                     .postback("Confirm", Payload.CONFIRM_ORDER)
                     .postback("Discard", Payload.DISCARD_ORDER)
                     .build();

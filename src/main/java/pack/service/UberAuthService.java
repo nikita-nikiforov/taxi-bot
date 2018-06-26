@@ -24,9 +24,9 @@ public class UberAuthService {
     @Autowired
     private FavoritePlaceService favoritePlaceService;
 
-    // TODO
+    // Method to get user's access_token,
     public boolean authorizeUser(Long chatId, String code) {
-        UberCredential myCredential = new UberCredential();     // Credential entity to setStartPoint
+        UberCredential myCredential = new UberCredential();     // Credential entity
         User user = userService.getUserByChatId(chatId);        // Get user by ChatId
         UberAccessTokenResponse accessTokenResponse = uberApiService.getAccessTokenResponse(code); // Get access_token
         // Here handle exception TODO

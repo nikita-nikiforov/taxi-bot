@@ -27,10 +27,6 @@ public enum RideStatus {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
     // Transform uber trip status to user state. E.g. "arrival" -> "UBER_ARRIVAL"
     public String getUserState() {
         return "UBER_" + name.toUpperCase();
@@ -38,5 +34,9 @@ public enum RideStatus {
 
     public static RideStatus findByName(String name) {
         return map.get(name);
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -80,7 +80,7 @@ public class UberController {
             case "requests.status_changed":
                 webhookService.handleStatusChangeWebhook(response);
             case "requests.receipt_ready":
-                uberRideService.handleReceiptWebhook(response);
+                webhookService.handleReceiptWebhook(response);
         }
     }
 }

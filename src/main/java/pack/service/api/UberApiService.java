@@ -12,7 +12,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import pack.dao.UberRideRepository;
 import pack.entity.Order;
 import pack.entity.UberRide;
 import pack.entity.User;
@@ -28,16 +27,10 @@ import java.util.*;
 @Service
 public class UberApiService {
     @Autowired
-    private Gson gson;
-
-    @Autowired
     private UberCredentialService uberCredentialService;
 
     @Autowired
     private OrderDaoService orderDaoService;
-
-    @Autowired
-    private UberRideRepository uberRideRepository;      // TODO to service
 
     @Autowired
     private UberRideDaoService uberRideDaoService;
@@ -47,6 +40,9 @@ public class UberApiService {
 
     @Autowired
     private AppProperties appProperties;
+
+    @Autowired
+    private Gson gson;
 
     public List<History> getHistoryList(User user) {
         List<History> result = new ArrayList<>();
@@ -63,15 +59,11 @@ public class UberApiService {
     // Make request to start new ride and get response with request_id.
     // It uses Order coords and UberRide fare_id and product_id
     public Optional<UberRideResponse> getUberNewRideResponse(User user) {
-        UberRide uberRide = uberRideRepository.findByOrderUserChatId(user.getChatId()).get();
+        UberRide uberRide = uberRideDaoService.getByUserChatId(user.getChatId()).get();
         Order order = orderDaoService.getOrderByChatId(user.getChatId());
         UberRideRequest jsonBody = new UberRideRequest(order, uberRide);
         String url = "https://sandbox-api.uber.com/v1.2/requests";
-
-        Optional<UberRideResponse> tripResponse = uberRestService
-                .postRequestOptional(user, url, jsonBody, UberRideResponse.class);
-        // TODO Handle errors
-        return tripResponse;
+        return uberRestService.postRequestOptional(user, url, jsonBody, UberRideResponse.class);
     }
 
     public UberRideResponse getCurrentTrip(User user) {
@@ -80,7 +72,7 @@ public class UberApiService {
         return response.get();
     }
 
-    // To determine if there's Uber service by coordinates TODO
+    // To determine if there's Uber service by coordinates
     public List<ProductItem> getProductsNearBy(User user, Coordinates coord) {
         Map<String, String> params = new HashMap<>();
         params.put("latitude", coord.getLatitude().toString());
@@ -90,14 +82,15 @@ public class UberApiService {
                 HttpMethod.GET, params);
         JSONArray array = (JSONArray) productsJson.get("products");
         List<ProductItem> productItems = new ArrayList<>();
-        // TODO here catch exception
         try {
             array.forEach(e -> {
                 JSONObject productJson = (JSONObject) e;
                 ProductItem productItem = gson.fromJson(productJson.toString(), ProductItem.class);
                 productItems.add(productItem);
             });
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return productItems;
     }
 
@@ -182,10 +175,6 @@ public class UberApiService {
         return result;
     }
 
-    public JSONObject infoAboutMe(User user) {
-        return retrieveJson(user, "https://api.uber.com/v1.2/me", HttpMethod.GET);
-    }
-
     public Optional<UberUserProfile> aboutMe(User user) {
         return uberRestService.getRequest(user, "https://api.uber.com/v1.2/me", UberUserProfile.class);
     }
@@ -215,9 +204,5 @@ public class UberApiService {
             e.printStackTrace();
             return null; //TODO
         }
-    }
-
-    public JSONObject retrieveJson(User user, String url, HttpMethod method) {
-        return retrieveJson(user, url, method, new HashMap<>());
     }
 }
